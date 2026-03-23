@@ -185,32 +185,24 @@
 
     <section id="quizView" class="view">
       <article class="panel-card">
-        <div id="quizTop" class="section-head quiz-top">
-          <div>
-            <p class="section-label">퀴즈</p>
-            <h2>떠올리기 + 반복 + 말해보기</h2>
-            <div class="mode-chip-row" role="tablist" aria-label="퀴즈 모드">
-              <button class="mode-chip is-active" type="button" data-mode="ko_to_en">한국어 → 영어</button>
-              <button class="mode-chip" type="button" data-mode="en_to_ko">영어 → 뜻</button>
-              <button class="mode-chip" type="button" data-mode="fill_blank">빈칸 채우기</button>
-            </div>
-          </div>
-
-          <div class="quiz-summary">
+        <div id="quizTop" class="quiz-top">
+          <div class="quiz-utility-row">
             <button id="quizBackButton" class="secondary-button compact-button quiz-back-button" type="button">뒤로가기</button>
-            <article class="mini-stat">
-              <span>남은 문장</span>
-              <strong id="quizRemainingText">0</strong>
-            </article>
-            <article class="mini-stat">
-              <span>진행</span>
-              <strong id="quizProgressText">0 / 0</strong>
-            </article>
-            <label class="checkbox-field auto-next-field">
+            <div class="quiz-progress-line" aria-live="polite">
+              <span class="quiz-progress-copy">진행 <strong id="quizProgressText">0 / 0</strong></span>
+              <span class="quiz-progress-separator">·</span>
+              <span class="quiz-progress-copy">남은 <strong id="quizRemainingText">0</strong></span>
+            </div>
+            <label class="checkbox-field auto-next-field compact-auto-next">
               <input id="autoNextToggle" type="checkbox">
               <span>정답 자동 진행</span>
             </label>
-            <button id="resetQuizButton" class="secondary-button compact-button" type="button">새 라운드</button>
+            <button id="resetQuizButton" class="secondary-button compact-button hidden-field" type="button">새 라운드</button>
+          </div>
+          <div class="mode-chip-row" role="tablist" aria-label="퀴즈 모드">
+            <button class="mode-chip is-active" type="button" data-mode="ko_to_en">한국어 → 영어</button>
+            <button class="mode-chip" type="button" data-mode="en_to_ko">영어 → 뜻</button>
+            <button class="mode-chip" type="button" data-mode="fill_blank">빈칸 채우기</button>
           </div>
         </div>
 

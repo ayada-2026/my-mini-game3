@@ -722,7 +722,7 @@ function renderQuizResult(sentence) {
   const isCorrect = Boolean(uiState.answerState?.isCorrect);
   const hintSource = sentence.pattern || sentence.note || "문장 구조를 다시 한 번 확인해 보세요.";
   refs.quizTop.classList.remove("hidden-field");
-  refs.resetQuizButton.classList.remove("hidden-field");
+  refs.resetQuizButton.classList.add("hidden-field");
   refs.quizResultCard.classList.remove("hidden-field");
   refs.quizResultCard.classList.remove("is-complete");
   refs.quizResultCard.classList.toggle("is-correct", isCorrect);
@@ -812,7 +812,7 @@ function renderQuiz() {
   refs.modeButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.mode === uiState.quizMode));
   refs.quizTop.classList.remove("hidden-field");
   const eligible = getQuizEligibleSentences();
-  refs.resetQuizButton.classList.remove("hidden-field");
+  refs.resetQuizButton.classList.add("hidden-field");
   if (eligible.length && !uiState.quizQueue.length && !uiState.quizRetryQueue.length) {
     uiState.quizQueue = eligible.map((sentence) => sentence.id).slice(0, QUIZ_BASE_SESSION_SIZE);
   }
@@ -834,14 +834,16 @@ function renderQuiz() {
   const sentence = question ? getSentenceById(question.sentenceId) : null;
   if (!question || !sentence) { return; }
   const isAnswered = Boolean(uiState.answerState && uiState.answerState.questionId === sentence.id);
-  refs.quizFavoriteButton.classList.remove("hidden-field");
-  refs.quizSpeakingButton.classList.remove("hidden-field");
+  refs.quizFavoriteButton.classList.toggle("hidden-field", isAnswered);
+  refs.quizSpeakingButton.classList.toggle("hidden-field", !isAnswered);
   refs.quizFavoriteButton.dataset.id = sentence.id;
   refs.quizSpeakingButton.dataset.id = sentence.id;
-  refs.quizFavoriteButton.textContent = sentence.favorite ? "즐겨찾기됨" : "즐겨찾기";
+  refs.quizFavoriteButton.textContent = sentence.favorite ? "★" : "☆";
   refs.quizSpeakingButton.textContent = sentence.speaking_checked ? "말해봄 완료" : "말해봄";
   refs.quizFavoriteButton.classList.toggle("is-active", sentence.favorite);
   refs.quizSpeakingButton.classList.toggle("is-active", sentence.speaking_checked);
+  refs.quizFavoriteButton.setAttribute("aria-label", sentence.favorite ? "즐겨찾기 해제" : "즐겨찾기");
+  refs.quizFavoriteButton.setAttribute("title", sentence.favorite ? "즐겨찾기 해제" : "즐겨찾기");
   refs.quizModeBadge.textContent = uiState.quizPhase === "retry" ? `${QUIZ_MODES[uiState.quizMode].label} · 재도전` : QUIZ_MODES[uiState.quizMode].label;
   refs.quizPromptText.textContent = question.prompt;
   refs.quizHintText.textContent = question.hint || QUIZ_MODES[uiState.quizMode].promptPrefix;
