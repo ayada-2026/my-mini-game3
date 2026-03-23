@@ -819,12 +819,12 @@ select:focus {
 }
 
 .compact-auto-next {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 16px;
 }
 
 .compact-auto-next span {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
 }
 
 .quiz-card-top {
@@ -832,9 +832,11 @@ select:focus {
   gap: 8px;
 }
 
-.quiz-card-top > div:first-child {
+.quiz-question-head {
   flex: 1 1 auto;
   min-width: 0;
+  position: relative;
+  padding-right: 46px;
 }
 
 .quiz-toggle-row {
@@ -843,8 +845,22 @@ select:focus {
 }
 
 .quiz-toggle-row .pill-button {
-  min-width: 42px;
-  padding: 8px 10px;
+  min-width: 72px;
+  padding: 7px 11px;
+  font-size: 0.88rem;
+}
+
+.quiz-favorite-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 38px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  justify-content: center;
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 .mode-badge {
@@ -861,6 +877,13 @@ select:focus {
   font-weight: 700;
   font-size: 0.98rem;
   line-height: 1.4;
+}
+
+.quiz-footer .primary-button,
+.quiz-footer .secondary-button {
+  padding: 10px 14px;
+  min-height: 46px;
+  font-size: 0.96rem;
 }
 
 .choice-button.is-correct,
@@ -1114,6 +1137,10 @@ select:focus {
     width: auto;
   }
 
+  .quiz-favorite-icon {
+    width: 38px;
+  }
+
   .quiz-card-top .quiz-toggle-row,
   .quiz-utility-row,
   .mode-chip-row {
@@ -1122,6 +1149,11 @@ select:focus {
 
   .quiz-progress-line {
     width: auto;
+  }
+
+  .quiz-footer .primary-button,
+  .quiz-footer .secondary-button {
+    width: 100%;
   }
 
   .sentence-action-row {
