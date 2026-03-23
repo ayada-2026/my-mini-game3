@@ -123,6 +123,10 @@ button {
   flex-wrap: wrap;
 }
 
+.hero-actions {
+  gap: 16px;
+}
+
 .primary-button,
 .secondary-button,
 .danger-button,
@@ -213,14 +217,6 @@ button {
   gap: 14px;
 }
 
-.summary-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.summary-card {
-  padding: 18px 20px;
-}
-
 .summary-card span,
 .mini-stat span,
 .result-grid span,
@@ -245,12 +241,78 @@ button {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.home-dashboard-grid {
+  margin-top: 20px;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.home-more-button {
+  margin-top: 14px;
+}
+
 .section-head {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
   margin-bottom: 18px;
+}
+
+.home-collapsible {
+  padding: 0;
+  overflow: hidden;
+}
+
+.home-collapsible > summary {
+  margin: 0;
+  padding: clamp(18px, 3vw, 26px);
+  cursor: pointer;
+  list-style: none;
+}
+
+.home-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-collapsible .summary-open {
+  display: none;
+}
+
+.home-collapsible[open] .summary-closed {
+  display: none;
+}
+
+.home-collapsible[open] .summary-open {
+  display: inline;
+}
+
+.home-collapsible[open] #recentSentenceList {
+  padding: 0 clamp(18px, 3vw, 26px) clamp(18px, 3vw, 26px);
+}
+
+.collapsible-copy {
+  color: var(--accent-strong);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.home-task-card {
+  display: grid;
+  gap: 8px;
+}
+
+.home-task-line {
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.home-task-line strong {
+  font-size: 1.15em;
+  font-variant-numeric: tabular-nums;
 }
 
 .mini-card-list,
@@ -666,6 +728,7 @@ select:focus {
 
 .thought-label,
 .thought-copy,
+.thought-meta,
 .repeat-prompt,
 .quiz-hint-line {
   margin: 0;
@@ -678,15 +741,25 @@ select:focus {
 }
 
 .thought-copy,
+.thought-meta,
 .repeat-prompt,
 .quiz-hint-line {
   color: var(--muted);
   line-height: 1.5;
 }
 
+.thought-meta {
+  font-size: 0.9rem;
+}
+
 .thought-button {
   width: fit-content;
   min-width: 150px;
+}
+
+.quiz-hint-button {
+  margin-top: 10px;
+  width: fit-content;
 }
 
 .choice-button {

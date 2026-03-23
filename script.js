@@ -1,8 +1,10 @@
 const STORAGE_KEY = "personalEnglishSentenceQuizV1";
 const CUSTOM_CATEGORY_VALUE = "__custom__";
 const CATEGORY_PRESETS = ["상태", "감정", "취향", "일상", "일", "공부", "이동"];
-const QUIZ_THINKING_DELAY_MS = 1700;
-const QUIZ_AUTO_NEXT_DELAY_MS = 1000;
+const QUIZ_THINKING_DELAY_MS = 3000;
+const QUIZ_AUTO_NEXT_DELAY_MS = 2600;
+const QUIZ_BASE_SESSION_SIZE = 5;
+const REVIEW_STALE_UNIT_MS = 1000 * 60 * 60 * 24;
 const QUIZ_MODES = {
   ko_to_en: {
     label: "한국어 → 영어",
@@ -26,7 +28,20 @@ const DEFAULT_SENTENCES = [
   { id: "seed-not-used-yet", category: "상태", korean: "\uC544\uC9C1 \uC775\uC219\uD558\uC9C0 \uC54A\uC544", english: "I'm not used to it yet.", pattern: "I'm not used to + noun + yet", note: "아직 적응 중일 때 쓰는 표현", example: "I'm not used to this schedule yet.", difficulty: 2 },
   { id: "seed-bit-unclear", category: "상태", korean: "\uC880 \uC560\uB9E4\uD574", english: "It's a bit unclear.", pattern: "It's a bit + adjective", note: "상황이 애매할 때 쓰는 표현", example: "It's a bit unclear right now.", difficulty: 1 },
   { id: "seed-no-energy", category: "감정", korean: "\uC624\uB298\uC740 \uAE30\uC6B4\uC774 \uC5C6\uC5B4", english: "I don't have much energy today.", pattern: "I don't have much + noun + today", note: "기운이 없을 때 쓰는 표현", example: "I don't have much energy today, so I'll rest.", difficulty: 2 },
-  { id: "seed-better-than-expected", category: "일상", korean: "\uC0DD\uAC01\uBCF4\uB2E4 \uAD1C\uCC2E\uC558\uC5B4", english: "It was better than I expected.", pattern: "It was better than + I expected", note: "예상보다 괜찮았을 때 쓰는 표현", example: "The class was better than I expected.", difficulty: 2 }
+  { id: "seed-better-than-expected", category: "일상", korean: "\uC0DD\uAC01\uBCF4\uB2E4 \uAD1C\uCC2E\uC558\uC5B4", english: "It was better than I expected.", pattern: "It was better than + I expected", note: "예상보다 괜찮았을 때 쓰는 표현", example: "The class was better than I expected.", difficulty: 2 },
+  { id: "seed-not-certain", category: "상태", korean: "확실하진 않아", english: "I'm not certain.", pattern: "I'm not + adjective", note: "조심스럽게 확신이 없다고 말할 때", example: "I'm not certain about the timing yet.", difficulty: 1 },
+  { id: "seed-too-much", category: "감정", korean: "좀 과한 느낌이야", english: "It feels a bit too much.", pattern: "It feels a bit too + adjective", note: "강하거나 부담스럽다고 느낄 때", example: "This design feels a bit too much for me.", difficulty: 2 },
+  { id: "seed-better-for-now", category: "일상", korean: "생각보다 괜찮아", english: "It's better than I expected.", pattern: "It's better than + I expected", note: "지금 느낌이 예상보다 좋을 때", example: "The food is better than I expected.", difficulty: 2 },
+  { id: "seed-kind-of-bothers", category: "감정", korean: "묘하게 신경 쓰여", english: "It kind of bothers me.", pattern: "It kind of + verb + me", note: "은근히 거슬릴 때 쓰는 표현", example: "That sound kind of bothers me.", difficulty: 2 },
+  { id: "seed-take-things-slow", category: "취향", korean: "난 천천히 하는 편이야", english: "I tend to take things slow.", pattern: "I tend to + verb", note: "내 성향을 설명할 때", example: "I tend to take things slow when I start something new.", difficulty: 2 },
+  { id: "seed-like-simple-things", category: "취향", korean: "난 단순한 게 좋아", english: "I like simple things.", pattern: "I like + noun", note: "취향을 편하게 말할 때", example: "I like simple things in life.", difficulty: 1 },
+  { id: "seed-not-into-strong-flavors", category: "취향", korean: "너무 자극적인 건 별로야", english: "I'm not into overly strong flavors.", pattern: "I'm not into + noun", note: "강한 맛 취향이 아닐 때", example: "I'm not into overly strong flavors these days.", difficulty: 2 },
+  { id: "seed-overthink", category: "상태", korean: "나는 생각이 많은 편이야", english: "I tend to overthink.", pattern: "I tend to + verb", note: "생각이 많은 성향을 말할 때", example: "I tend to overthink small things.", difficulty: 2 },
+  { id: "seed-try-this-way", category: "일상", korean: "일단 이렇게 해볼게", english: "I'll try it this way for now.", pattern: "I'll try it + adverbial phrase", note: "우선 이 방식으로 해보겠다고 할 때", example: "I'll try it this way for now and adjust later.", difficulty: 2 },
+  { id: "seed-seems-better-for-now", category: "상태", korean: "지금은 이게 더 나아 보여", english: "This seems better for now.", pattern: "This seems + adjective + for now", note: "당장은 이쪽이 더 낫다고 느낄 때", example: "This seems better for now, so let's go with it.", difficulty: 2 },
+  { id: "seed-not-decided-yet", category: "상태", korean: "아직 결정 안 했어", english: "I haven't decided yet.", pattern: "I haven't + past participle + yet", note: "결정을 미뤄둔 상태를 말할 때", example: "I haven't decided yet, so give me a little time.", difficulty: 2 },
+  { id: "seed-still-figuring-out", category: "상태", korean: "아직 정리 중이야", english: "I'm still figuring it out.", pattern: "I'm still + verb-ing + it out", note: "아직 생각을 정리하는 중일 때", example: "I'm still figuring it out, so I can't say for sure.", difficulty: 2 },
+  { id: "seed-see-how-goes", category: "일상", korean: "그냥 두고 볼게", english: "I'll just see how it goes.", pattern: "I'll just + verb + how it goes", note: "서두르지 않고 지켜보겠다고 할 때", example: "I'll just see how it goes for a few days.", difficulty: 2 }
 ];
 
 const refs = {
@@ -42,6 +57,7 @@ const refs = {
   speakingPendingText: document.getElementById("speakingPendingText"),
   favoriteCountText: document.getElementById("favoriteCountText"),
   todaySentenceList: document.getElementById("todaySentenceList"),
+  todayMoreButton: document.getElementById("todayMoreButton"),
   recentSentenceList: document.getElementById("recentSentenceList"),
   favoriteSentenceList: document.getElementById("favoriteSentenceList"),
   categoryFilter: document.getElementById("categoryFilter"),
@@ -82,6 +98,7 @@ const refs = {
   quizCard: document.getElementById("quizCard"),
   quizModeBadge: document.getElementById("quizModeBadge"),
   quizPromptText: document.getElementById("quizPromptText"),
+  quizHintButton: document.getElementById("quizHintButton"),
   quizHintText: document.getElementById("quizHintText"),
   quizFavoriteButton: document.getElementById("quizFavoriteButton"),
   quizSpeakingButton: document.getElementById("quizSpeakingButton"),
@@ -107,12 +124,17 @@ let uiState = {
   editingSentenceId: null,
   pendingDuplicateConfirm: null,
   exampleFieldVisible: false,
+  dashboardTodayExpanded: false,
   filters: { category: "all", status: "all", favoriteOnly: false, query: "" },
   quizMode: state.preferences.quiz_mode,
   quizQueue: [],
+  quizRetryQueue: [],
+  quizRetrySource: [],
+  quizPhase: "base",
   quizIndex: 0,
   quizStats: { correct: 0, wrong: 0 },
   currentQuestion: null,
+  quizHintVisible: false,
   answerState: null,
   answerControlsVisible: false,
   revealReady: false,
@@ -130,14 +152,45 @@ function getStatusLabel(value) {
   if (value === "familiar") { return "익숙함"; }
   return "새 문장";
 }
+function getStatusWeight(value) {
+  if (value === "new") { return 3; }
+  if (value === "learning") { return 2; }
+  return 0;
+}
+function getReviewAgeBonus(sentence) {
+  if (!sentence.last_reviewed_at) { return 4; }
+  return Math.min(4, Math.floor((Date.now() - sentence.last_reviewed_at) / REVIEW_STALE_UNIT_MS));
+}
+function getReviewBucket(sentence) {
+  if (sentence.wrong_count > 0) { return 0; }
+  if (!sentence.speaking_checked) { return 1; }
+  if (sentence.status === "new") { return 2; }
+  if (sentence.status === "learning") { return 3; }
+  return 4;
+}
+function calculatePriorityScore(sentence) {
+  return (sentence.wrong_count * 5)
+    + (sentence.speaking_checked ? 0 : 4)
+    + getStatusWeight(sentence.status)
+    + getReviewAgeBonus(sentence);
+}
 function getSentenceSignature(sentence) { return `${cleanText(sentence.korean).toLowerCase()}::${cleanText(sentence.english).toLowerCase()}`; }
 function getSentenceById(id) { return state.sentences.find((sentence) => sentence.id === id) || null; }
 function shuffle(list) { const copy = [...list]; for (let i = copy.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
 function getEnglishWords(value) { return cleanText(value).replace(/[.,!?]/g, "").split(/\s+/).filter(Boolean); }
+function sortByReviewPriority(sentences) {
+  return [...sentences].sort((left, right) => {
+    const bucketDiff = getReviewBucket(left) - getReviewBucket(right);
+    if (bucketDiff !== 0) { return bucketDiff; }
+    if (right.priority_score !== left.priority_score) { return right.priority_score - left.priority_score; }
+    if ((left.last_reviewed_at || 0) !== (right.last_reviewed_at || 0)) { return (left.last_reviewed_at || 0) - (right.last_reviewed_at || 0); }
+    return right.updated_at - left.updated_at;
+  });
+}
 
 function createSentence(input) {
   const time = Date.now();
-  return {
+  const sentence = {
     id: input.id || createId(),
     category: cleanText(input.category) || "일상",
     korean: cleanText(input.korean),
@@ -152,8 +205,12 @@ function createSentence(input) {
     favorite: Boolean(input.favorite),
     created_at: Number(input.created_at) || time,
     updated_at: Number(input.updated_at) || time,
-    success_count: normalizeCount(input.success_count)
+    correct_count: normalizeCount(input.correct_count ?? input.success_count),
+    last_reviewed_at: Number(input.last_reviewed_at) || 0,
+    priority_score: normalizeCount(input.priority_score)
   };
+  const reconciled = reconcileStatus(sentence);
+  return { ...reconciled, priority_score: calculatePriorityScore(reconciled) };
 }
 
 function hydrateState(saved) {
@@ -165,7 +222,8 @@ function hydrateState(saved) {
       wrong_count: 0,
       speaking_checked: false,
       favorite: false,
-      success_count: 0,
+      correct_count: 0,
+      last_reviewed_at: 0,
       created_at: 1000 + index,
       updated_at: 1000 + index
     }));
@@ -197,31 +255,38 @@ function updateSentence(id, transformer) {
   state.sentences = state.sentences.map((sentence) => {
     if (sentence.id !== id) { return sentence; }
     changed = true;
-    return transformer({ ...sentence });
+    return createSentence(transformer({ ...sentence }));
   });
   if (changed) { saveState(); }
 }
 
 function reconcileStatus(sentence) {
   const next = { ...sentence };
-  if (next.status === "new" && next.success_count > 0) { next.status = "learning"; }
-  if (next.status === "learning" && next.success_count >= 2 && next.speaking_checked) { next.status = "familiar"; }
-  if (next.status === "familiar" && (!next.speaking_checked || next.success_count < 2)) { next.status = "learning"; }
+  if (next.correct_count >= 3 && next.speaking_checked) {
+    next.status = "familiar";
+    return next;
+  }
+  if (next.status === "learning" || next.status === "familiar" || next.correct_count >= 1) {
+    next.status = "learning";
+    return next;
+  }
+  next.status = "new";
   return next;
 }
 
 function applyQuizResult(sentence, isCorrect) {
-  const next = { ...sentence, updated_at: Date.now() };
-  if (next.status === "new") { next.status = "learning"; }
+  const next = { ...sentence, updated_at: Date.now(), last_reviewed_at: Date.now() };
   if (isCorrect) {
-    next.success_count += 1;
+    next.correct_count += 1;
     next.wrong_count = Math.max(0, next.wrong_count - 1);
+    if (next.status === "new") { next.status = "learning"; }
   } else {
-    next.success_count = 0;
+    next.correct_count = 0;
     next.wrong_count += 1;
     if (next.status === "familiar") { next.status = "learning"; }
   }
-  return reconcileStatus(next);
+  const reconciled = reconcileStatus(next);
+  return { ...reconciled, priority_score: calculatePriorityScore(reconciled) };
 }
 
 function toggleFavorite(id) { updateSentence(id, (sentence) => ({ ...sentence, favorite: !sentence.favorite, updated_at: Date.now() })); renderApp(); }
@@ -235,8 +300,6 @@ function deleteSentence(id) {
   renderApp();
 }
 
-function getReviewScore(sentence) { return sentence.wrong_count * 12 + (sentence.speaking_checked ? 0 : 8) + { new: 6, learning: 3, familiar: 0 }[sentence.status] + sentence.difficulty; }
-function sortByReviewPriority(sentences) { return [...sentences].sort((left, right) => (getReviewScore(right) - getReviewScore(left)) || (right.updated_at - left.updated_at)); }
 function isReviewNeeded(sentence) { return sentence.status !== "familiar" || !sentence.speaking_checked || sentence.wrong_count > 0; }
 function getTodaySentences() { return sortByReviewPriority(state.sentences).slice(0, 5); }
 function getRecentSentences() { return [...state.sentences].sort((left, right) => right.created_at - left.created_at).slice(0, 5); }
@@ -424,7 +487,7 @@ function persistSentenceForm(payload, options = {}) {
     exitEditMode();
     setCurrentView("library");
   } else {
-    state.sentences.unshift(createSentence({ ...payload, status: "new", wrong_count: 0, speaking_checked: false, favorite: false, success_count: 0 }));
+    state.sentences.unshift(createSentence({ ...payload, status: "new", wrong_count: 0, speaking_checked: false, favorite: false, correct_count: 0, last_reviewed_at: 0 }));
     saveState();
     resetSentenceForm();
     refs.postSaveActions.classList.remove("hidden-field");
@@ -461,13 +524,18 @@ function renderMiniCards(container, sentences, emptyText) {
   `).join("");
 }
 function renderSummary() {
-  refs.totalCountText.textContent = String(state.sentences.length);
-  refs.reviewCountText.textContent = String(state.sentences.filter(isReviewNeeded).length);
-  refs.speakingPendingText.textContent = String(state.sentences.filter((sentence) => !sentence.speaking_checked).length);
-  refs.favoriteCountText.textContent = String(state.sentences.filter((sentence) => sentence.favorite).length);
-  renderMiniCards(refs.todaySentenceList, getTodaySentences(), "짧은 문장을 하나 추가하면 바로 시작할 수 있어요.");
+  if (refs.totalCountText) { refs.totalCountText.textContent = String(state.sentences.length); }
+  if (refs.reviewCountText) { refs.reviewCountText.textContent = String(state.sentences.filter(isReviewNeeded).length); }
+  if (refs.speakingPendingText) { refs.speakingPendingText.textContent = String(state.sentences.filter((sentence) => !sentence.speaking_checked).length); }
+  if (refs.favoriteCountText) { refs.favoriteCountText.textContent = String(state.sentences.filter((sentence) => sentence.favorite).length); }
+  const todaySentences = getTodaySentences();
+  const todayVisible = uiState.dashboardTodayExpanded ? todaySentences : todaySentences.slice(0, 3);
+  renderMiniCards(refs.todaySentenceList, todayVisible, "짧은 문장을 하나 추가하면 바로 시작할 수 있어요.");
+  if (refs.todayMoreButton) {
+    refs.todayMoreButton.textContent = uiState.dashboardTodayExpanded ? "접기" : "더 보기";
+    refs.todayMoreButton.classList.toggle("hidden-field", todaySentences.length <= 3);
+  }
   renderMiniCards(refs.recentSentenceList, getRecentSentences(), "최근 추가한 문장이 여기에 보여요.");
-  renderMiniCards(refs.favoriteSentenceList, getFavoriteSentences(), "자주 쓰는 문장을 즐겨찾기로 남겨보세요.");
 }
 function getFilteredSentences() {
   const query = uiState.filters.query.trim().toLowerCase();
@@ -516,7 +584,7 @@ function renderSentenceList() {
         <summary><span class="summary-closed">학습 정보 보기 ▾</span><span class="summary-open">학습 정보 숨기기 ▴</span></summary>
         <div class="learning-detail-grid">
           <div class="learning-detail-item"><span>상태</span><strong>${escapeHtml(getStatusLabel(sentence.status))}</strong></div>
-          <div class="learning-detail-item"><span>우선순위</span><strong>${getReviewScore(sentence)}</strong></div>
+          <div class="learning-detail-item"><span>우선순위</span><strong>${sentence.priority_score}</strong></div>
         </div>
       </details>
     </article>
@@ -559,6 +627,9 @@ function getQuizEligibleSentences() {
   const uniqueValues = new Set(state.sentences.map((sentence) => cleanText(sentence[field]).toLowerCase()));
   return uniqueValues.size < 2 ? [] : sortByReviewPriority(state.sentences);
 }
+function getCurrentQuizQueue() {
+  return uiState.quizPhase === "retry" ? uiState.quizRetryQueue : uiState.quizQueue;
+}
 function clearQuizTimers() {
   if (uiState.quizTimers.thinking) { window.clearTimeout(uiState.quizTimers.thinking); uiState.quizTimers.thinking = null; }
   if (uiState.quizTimers.autoNext) { window.clearTimeout(uiState.quizTimers.autoNext); uiState.quizTimers.autoNext = null; }
@@ -572,10 +643,14 @@ function scheduleQuizThinkingPhase() {
 }
 function resetQuizSession() {
   clearQuizTimers();
-  uiState.quizQueue = getQuizEligibleSentences().map((sentence) => sentence.id).slice(0, 12);
+  uiState.quizQueue = getQuizEligibleSentences().map((sentence) => sentence.id).slice(0, QUIZ_BASE_SESSION_SIZE);
+  uiState.quizRetryQueue = [];
+  uiState.quizRetrySource = [];
+  uiState.quizPhase = "base";
   uiState.quizIndex = 0;
   uiState.quizStats = { correct: 0, wrong: 0 };
   uiState.currentQuestion = null;
+  uiState.quizHintVisible = false;
   uiState.answerState = null;
   uiState.answerControlsVisible = false;
   uiState.revealReady = false;
@@ -583,12 +658,13 @@ function resetQuizSession() {
   renderApp();
 }
 function ensureCurrentQuestion() {
-  const sentenceId = uiState.quizQueue[uiState.quizIndex];
+  const sentenceId = getCurrentQuizQueue()[uiState.quizIndex];
   if (!sentenceId) { uiState.currentQuestion = null; return null; }
   if (uiState.currentQuestion && uiState.currentQuestion.sentenceId === sentenceId && uiState.currentQuestion.mode === uiState.quizMode) { return uiState.currentQuestion; }
   const sentence = getSentenceById(sentenceId);
   if (!sentence) { uiState.currentQuestion = null; return null; }
   uiState.currentQuestion = createQuestionPayload(sentence);
+  uiState.quizHintVisible = false;
   uiState.answerState = null;
   scheduleQuizThinkingPhase();
   return uiState.currentQuestion;
@@ -600,7 +676,7 @@ function getQuizEmptyMessage() {
 }
 function renderQuizThinkingState() {
   refs.quizChoiceArea.innerHTML = "";
-  refs.quizInputArea.innerHTML = `<div class="thought-card"><p class="thought-label">먼저 떠올려 보세요.</p><p class="thought-copy">${escapeHtml(QUIZ_MODES[uiState.quizMode].thinkingCopy)}</p><button class="secondary-button compact-button thought-button" type="button" data-quiz-action="show-options">생각했으면 보기</button></div>`;
+  refs.quizInputArea.innerHTML = `<div class="thought-card"><p class="thought-label">먼저 떠올려 보세요.</p><p class="thought-copy">${escapeHtml(QUIZ_MODES[uiState.quizMode].thinkingCopy)}</p><button class="secondary-button compact-button thought-button" type="button" data-quiz-action="show-options">생각했으면 보기</button><p class="thought-meta">버튼을 누르거나 3초 뒤 자동으로 보기가 나타납니다.</p></div>`;
 }
 function renderChoiceQuestion(question, sentence, isAnswered) {
   refs.quizInputArea.innerHTML = "";
@@ -614,7 +690,7 @@ function renderChoiceQuestion(question, sentence, isAnswered) {
 function renderBlankQuestion(question, sentence, isAnswered) {
   const userValue = isAnswered ? uiState.answerState.userValue : "";
   refs.quizChoiceArea.innerHTML = "";
-  refs.quizInputArea.innerHTML = `<form class="quiz-answer-form" id="blankAnswerForm"><input id="blankAnswerInput" type="text" placeholder="빈칸에 들어갈 표현" value="${escapeHtml(userValue)}" ${isAnswered ? "disabled" : ""}><button class="quiz-submit-button" type="submit" ${isAnswered ? "disabled" : ""}>확인</button></form><p class="sentence-meta">뜻 힌트: ${escapeHtml(sentence.korean)}</p>`;
+  refs.quizInputArea.innerHTML = `<form class="quiz-answer-form" id="blankAnswerForm"><input id="blankAnswerInput" type="text" placeholder="빈칸에 들어갈 표현" value="${escapeHtml(userValue)}" ${isAnswered ? "disabled" : ""}><button class="quiz-submit-button" type="submit" ${isAnswered ? "disabled" : ""}>확인</button></form>`;
 }
 function renderQuizResult(sentence) {
   const isCorrect = Boolean(uiState.answerState?.isCorrect);
@@ -638,8 +714,10 @@ function renderQuizResult(sentence) {
 }
 function renderQuizCompleteState() {
   refs.quizModeBadge.textContent = QUIZ_MODES[uiState.quizMode].label;
-  refs.quizPromptText.textContent = "이번 라운드를 마쳤어요.";
+  refs.quizPromptText.textContent = "이번 세션을 마쳤어요.";
   refs.quizHintText.textContent = `정답 ${uiState.quizStats.correct}개 · 오답 ${uiState.quizStats.wrong}개`;
+  refs.quizHintButton.classList.add("hidden-field");
+  refs.quizHintText.classList.remove("hidden-field");
   refs.quizFavoriteButton.classList.add("hidden-field");
   refs.quizSpeakingButton.classList.add("hidden-field");
   refs.quizInputArea.innerHTML = "";
@@ -663,8 +741,11 @@ function renderQuizCompleteState() {
 function renderQuiz() {
   refs.modeButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.mode === uiState.quizMode));
   const eligible = getQuizEligibleSentences();
-  if (eligible.length && !uiState.quizQueue.length) { uiState.quizQueue = eligible.map((sentence) => sentence.id).slice(0, 12); }
-  const total = uiState.quizQueue.length;
+  if (eligible.length && !uiState.quizQueue.length && !uiState.quizRetryQueue.length) {
+    uiState.quizQueue = eligible.map((sentence) => sentence.id).slice(0, QUIZ_BASE_SESSION_SIZE);
+  }
+  const activeQueue = getCurrentQuizQueue();
+  const total = activeQueue.length;
   refs.quizRemainingText.textContent = String(Math.max(total - uiState.quizIndex, 0));
   refs.quizProgressText.textContent = total ? `${Math.min(uiState.quizIndex + 1, total)} / ${total}` : "0 / 0";
   if (!eligible.length) {
@@ -689,9 +770,11 @@ function renderQuiz() {
   refs.quizSpeakingButton.textContent = sentence.speaking_checked ? "말해봄 완료" : "말해봄";
   refs.quizFavoriteButton.classList.toggle("is-active", sentence.favorite);
   refs.quizSpeakingButton.classList.toggle("is-active", sentence.speaking_checked);
-  refs.quizModeBadge.textContent = QUIZ_MODES[uiState.quizMode].label;
+  refs.quizModeBadge.textContent = uiState.quizPhase === "retry" ? `${QUIZ_MODES[uiState.quizMode].label} · 재도전` : QUIZ_MODES[uiState.quizMode].label;
   refs.quizPromptText.textContent = question.prompt;
   refs.quizHintText.textContent = question.hint || QUIZ_MODES[uiState.quizMode].promptPrefix;
+  refs.quizHintButton.classList.toggle("hidden-field", isAnswered || !question.hint || uiState.quizHintVisible);
+  refs.quizHintText.classList.toggle("hidden-field", isAnswered || !uiState.quizHintVisible);
   refs.revealAnswerButton.disabled = isAnswered || !uiState.revealReady;
   refs.nextQuestionButton.disabled = !isAnswered;
   if (isAnswered) {
@@ -717,8 +800,9 @@ function finalizeQuizAnswer(isCorrect, userValue) {
   if (isCorrect) { uiState.quizStats.correct += 1; }
   else {
     uiState.quizStats.wrong += 1;
-    const occurrences = uiState.quizQueue.filter((id) => id === sentence.id).length;
-    if (occurrences < 3) { uiState.quizQueue.splice(Math.min(uiState.quizIndex + 2, uiState.quizQueue.length), 0, sentence.id); }
+    if (uiState.quizPhase === "base" && !uiState.quizRetrySource.includes(sentence.id)) {
+      uiState.quizRetrySource.push(sentence.id);
+    }
   }
   renderApp();
   if (isCorrect && refs.autoNextToggle.checked) { uiState.quizTimers.autoNext = window.setTimeout(() => moveToNextQuestion(), QUIZ_AUTO_NEXT_DELAY_MS); }
@@ -727,11 +811,24 @@ function moveToNextQuestion() {
   if (!uiState.answerState) { return; }
   clearQuizTimers();
   uiState.quizIndex += 1;
+  const activeQueue = getCurrentQuizQueue();
+  if (uiState.quizIndex >= activeQueue.length && uiState.quizPhase === "base" && uiState.quizRetrySource.length) {
+    uiState.quizPhase = "retry";
+    uiState.quizRetryQueue = [...uiState.quizRetrySource];
+    uiState.quizRetrySource = [];
+    uiState.quizIndex = 0;
+  }
   uiState.currentQuestion = null;
+  uiState.quizHintVisible = false;
   uiState.answerState = null;
   uiState.answerControlsVisible = false;
   uiState.revealReady = false;
   renderApp();
+}
+function showQuizHint() {
+  if (!uiState.currentQuestion?.hint || uiState.answerState) { return; }
+  uiState.quizHintVisible = true;
+  renderQuiz();
 }
 function showQuizOptionsNow() { if (!uiState.answerState && !uiState.answerControlsVisible) { unlockQuizAnswerControls(); } }
 function revealAnswer() {
@@ -797,6 +894,10 @@ function bindEvents() {
   refs.forceDuplicateSaveButton.addEventListener("click", () => { if (uiState.pendingDuplicateConfirm) { persistSentenceForm(uiState.pendingDuplicateConfirm, { forceDuplicateSave: true }); } });
   refs.continueAddButton.addEventListener("click", () => { refs.postSaveActions.classList.add("hidden-field"); refs.formMessage.textContent = ""; refs.koreanInput.focus(); });
   refs.goHomeAfterSaveButton.addEventListener("click", () => { refs.postSaveActions.classList.add("hidden-field"); setCurrentView("dashboard"); });
+  refs.todayMoreButton?.addEventListener("click", () => {
+    uiState.dashboardTodayExpanded = !uiState.dashboardTodayExpanded;
+    renderSummary();
+  });
   refs.sentenceList.addEventListener("click", handleLibraryAction);
   refs.categoryFilter.addEventListener("change", (event) => { uiState.filters.category = event.target.value; renderSentenceList(); });
   refs.statusFilter.addEventListener("change", (event) => { uiState.filters.status = event.target.value; renderSentenceList(); });
@@ -810,6 +911,7 @@ function bindEvents() {
   });
   refs.revealAnswerButton.addEventListener("click", revealAnswer);
   refs.nextQuestionButton.addEventListener("click", moveToNextQuestion);
+  refs.quizHintButton.addEventListener("click", showQuizHint);
   refs.resetQuizButton.addEventListener("click", resetQuizSession);
   refs.quizFavoriteButton.addEventListener("click", () => { if (refs.quizFavoriteButton.dataset.id) { toggleFavorite(refs.quizFavoriteButton.dataset.id); } });
   refs.quizSpeakingButton.addEventListener("click", () => { if (refs.quizSpeakingButton.dataset.id) { toggleSpeaking(refs.quizSpeakingButton.dataset.id); } });

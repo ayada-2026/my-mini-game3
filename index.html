@@ -12,8 +12,8 @@
     <section class="hero-card">
       <div class="hero-copy">
         <p class="eyebrow">내 문장 반복 학습</p>
-        <h1>적은 문장을 반복해서 내 표현으로 만드는 퀴즈 앱</h1>
-        <p class="hero-text">이 앱은 많이 배우기보다 자주 쓸 문장을 떠올리고, 반복하고, 말해보는 흐름에 맞춰져 있습니다.</p>
+        <h1>문장 반복 퀴즈 앱</h1>
+        <p class="hero-text">자주 쓸 문장을 떠올리고, 반복하고, 말해보는 앱입니다.</p>
       </div>
 
       <div class="hero-actions">
@@ -30,54 +30,34 @@
     </nav>
 
     <section id="dashboardView" class="view is-active">
-      <div class="summary-grid">
-        <article class="summary-card">
-          <span>전체 문장</span>
-          <strong id="totalCountText">0</strong>
-        </article>
-        <article class="summary-card">
-          <span>복습 필요</span>
-          <strong id="reviewCountText">0</strong>
-        </article>
-        <article class="summary-card">
-          <span>말하기 미완료</span>
-          <strong id="speakingPendingText">0</strong>
-        </article>
-        <article class="summary-card">
-          <span>즐겨찾기</span>
-          <strong id="favoriteCountText">0</strong>
-        </article>
-      </div>
-
-      <div class="dashboard-grid">
+      <div class="dashboard-grid home-dashboard-grid">
         <article class="panel-card">
           <div class="section-head">
             <div>
               <p class="section-label">오늘</p>
-              <h2>오늘의 문장 5개</h2>
+              <h2>오늘의 문장</h2>
             </div>
           </div>
           <div id="todaySentenceList" class="mini-card-list"></div>
+          <button id="todayMoreButton" class="secondary-button compact-button home-more-button" type="button">더 보기</button>
         </article>
 
-        <article class="panel-card">
-          <div class="section-head">
+        <details class="panel-card home-collapsible">
+          <summary class="section-head">
             <div>
               <p class="section-label">최근</p>
               <h2>최근 추가 문장</h2>
             </div>
-          </div>
+            <span class="collapsible-copy"><span class="summary-closed">보기 ▾</span><span class="summary-open">숨기기 ▴</span></span>
+          </summary>
           <div id="recentSentenceList" class="mini-card-list"></div>
-        </article>
+        </details>
 
-        <article class="panel-card">
-          <div class="section-head">
-            <div>
-              <p class="section-label">즐겨찾기</p>
-              <h2>즐겨찾기 문장</h2>
-            </div>
+        <article class="panel-card home-task-card">
+          <div>
+            <p class="section-label">오늘 할 것</p>
+            <p class="home-task-line">복습 <strong id="reviewCountText">0</strong> · 말하기 <strong id="speakingPendingText">0</strong></p>
           </div>
-          <div id="favoriteSentenceList" class="mini-card-list"></div>
         </article>
       </div>
     </section>
@@ -226,7 +206,7 @@
               <strong id="quizProgressText">0 / 0</strong>
             </article>
             <label class="checkbox-field auto-next-field">
-              <input id="autoNextToggle" type="checkbox" checked>
+              <input id="autoNextToggle" type="checkbox">
               <span>정답 자동 진행</span>
             </label>
             <button id="resetQuizButton" class="secondary-button compact-button" type="button">새 라운드</button>
@@ -240,7 +220,8 @@
             <div>
               <span id="quizModeBadge" class="mode-badge"></span>
               <h3 id="quizPromptText" class="quiz-prompt"></h3>
-              <p id="quizHintText" class="quiz-hint"></p>
+              <button id="quizHintButton" class="secondary-button compact-button quiz-hint-button hidden-field" type="button">힌트 보기</button>
+              <p id="quizHintText" class="quiz-hint hidden-field"></p>
             </div>
 
             <div class="quiz-toggle-row">
