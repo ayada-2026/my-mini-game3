@@ -251,6 +251,10 @@ button {
   margin-top: 14px;
 }
 
+.quiz-back-button {
+  width: fit-content;
+}
+
 .section-head {
   display: flex;
   justify-content: space-between;
@@ -804,6 +808,7 @@ select:focus {
 
 .feedback-text {
   margin: 0;
+  font-size: 1.35rem;
   font-weight: 800;
   color: var(--accent-strong);
 }
@@ -811,6 +816,10 @@ select:focus {
 .result-card {
   display: grid;
   gap: 14px;
+}
+
+.result-card.is-complete {
+  gap: 16px;
 }
 
 .result-hero {
@@ -833,6 +842,18 @@ select:focus {
   margin: 0;
   color: var(--muted);
   font-weight: 700;
+}
+
+.repeat-prompt.complete-callout {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: var(--success);
+  border: 1px solid var(--success-line);
+  color: var(--accent-strong);
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.55;
+  white-space: pre-line;
 }
 
 .result-speaking-button {
@@ -860,6 +881,74 @@ select:focus {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.complete-summary-grid,
+.complete-preview-list {
+  display: grid;
+  gap: 10px;
+}
+
+.complete-summary-card {
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: rgba(255, 251, 245, 0.86);
+}
+
+.complete-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.complete-stat,
+.complete-preview-item {
+  padding: 6px 4px;
+}
+
+.complete-stat span,
+.complete-preview-head {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.complete-stat strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+
+.complete-stat p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.complete-preview-head {
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.complete-preview-item strong {
+  display: block;
+  line-height: 1.45;
+}
+
+.complete-preview-item p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.complete-preview-message {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 251, 245, 0.86);
+  border: 1px solid var(--line);
+  color: var(--accent-strong);
+  font-weight: 700;
+  line-height: 1.6;
 }
 
 .wide-result {
@@ -944,6 +1033,11 @@ select:focus {
 
   .sentence-info-grid,
   .learning-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .complete-summary-grid,
+  .result-grid {
     grid-template-columns: 1fr;
   }
 

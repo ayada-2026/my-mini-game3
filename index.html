@@ -9,7 +9,7 @@
 </head>
 <body>
   <main class="app-shell">
-    <section class="hero-card">
+    <section id="heroCard" class="hero-card">
       <div class="hero-copy">
         <p class="eyebrow">내 문장 반복 학습</p>
         <h1>문장 반복 퀴즈 앱</h1>
@@ -22,7 +22,7 @@
       </div>
     </section>
 
-    <nav class="tab-bar" aria-label="화면 이동">
+    <nav id="tabBar" class="tab-bar" aria-label="화면 이동">
       <button class="tab-button is-active" type="button" data-view-target="dashboard">홈</button>
       <button class="tab-button" type="button" data-view-target="library">문장</button>
       <button class="tab-button" type="button" data-view-target="add">추가</button>
@@ -185,7 +185,7 @@
 
     <section id="quizView" class="view">
       <article class="panel-card">
-        <div class="section-head quiz-top">
+        <div id="quizTop" class="section-head quiz-top">
           <div>
             <p class="section-label">퀴즈</p>
             <h2>떠올리기 + 반복 + 말해보기</h2>
@@ -197,6 +197,7 @@
           </div>
 
           <div class="quiz-summary">
+            <button id="quizBackButton" class="secondary-button compact-button quiz-back-button" type="button">뒤로가기</button>
             <article class="mini-stat">
               <span>남은 문장</span>
               <strong id="quizRemainingText">0</strong>
@@ -236,12 +237,12 @@
           <article id="quizResultCard" class="result-card hidden-field" aria-live="polite">
             <p id="quizFeedbackText" class="feedback-text"></p>
             <p id="quizRepeatPromptText" class="repeat-prompt"></p>
-            <div class="result-hero">
+            <div id="resultHero" class="result-hero">
               <strong id="resultEnglishText" class="result-english"></strong>
               <p id="resultKoreanText" class="result-korean"></p>
             </div>
             <p id="quizHintLine" class="quiz-hint-line hidden-field"></p>
-            <div class="result-grid">
+            <div id="resultMetaGrid" class="result-grid">
               <div>
                 <span>기본 틀</span>
                 <strong id="resultPatternText"></strong>
@@ -255,6 +256,8 @@
                 <strong id="resultNoteText"></strong>
               </div>
             </div>
+            <div id="quizCompleteSummary" class="complete-summary hidden-field"></div>
+            <div id="quizCompletePreview" class="complete-preview hidden-field"></div>
             <button id="resultSpeakingButton" class="primary-button result-speaking-button hidden-field" type="button">말해봄</button>
           </article>
 

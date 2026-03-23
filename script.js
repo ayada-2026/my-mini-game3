@@ -45,6 +45,8 @@ const DEFAULT_SENTENCES = [
 ];
 
 const refs = {
+  heroCard: document.getElementById("heroCard"),
+  tabBar: document.getElementById("tabBar"),
   viewButtons: [...document.querySelectorAll("[data-view-target]")],
   views: {
     dashboard: document.getElementById("dashboardView"),
@@ -90,9 +92,11 @@ const refs = {
   continueAddButton: document.getElementById("continueAddButton"),
   goHomeAfterSaveButton: document.getElementById("goHomeAfterSaveButton"),
   modeButtons: [...document.querySelectorAll("[data-mode]")],
+  quizTop: document.getElementById("quizTop"),
   quizRemainingText: document.getElementById("quizRemainingText"),
   quizProgressText: document.getElementById("quizProgressText"),
   autoNextToggle: document.getElementById("autoNextToggle"),
+  quizBackButton: document.getElementById("quizBackButton"),
   resetQuizButton: document.getElementById("resetQuizButton"),
   quizEmptyState: document.getElementById("quizEmptyState"),
   quizCard: document.getElementById("quizCard"),
@@ -108,11 +112,15 @@ const refs = {
   quizFeedbackText: document.getElementById("quizFeedbackText"),
   quizRepeatPromptText: document.getElementById("quizRepeatPromptText"),
   quizHintLine: document.getElementById("quizHintLine"),
+  resultHero: document.getElementById("resultHero"),
   resultEnglishText: document.getElementById("resultEnglishText"),
   resultKoreanText: document.getElementById("resultKoreanText"),
+  resultMetaGrid: document.getElementById("resultMetaGrid"),
   resultPatternText: document.getElementById("resultPatternText"),
   resultExampleText: document.getElementById("resultExampleText"),
   resultNoteText: document.getElementById("resultNoteText"),
+  quizCompleteSummary: document.getElementById("quizCompleteSummary"),
+  quizCompletePreview: document.getElementById("quizCompletePreview"),
   resultSpeakingButton: document.getElementById("resultSpeakingButton"),
   revealAnswerButton: document.getElementById("revealAnswerButton"),
   nextQuestionButton: document.getElementById("nextQuestionButton")
@@ -133,6 +141,9 @@ let uiState = {
   quizPhase: "base",
   quizIndex: 0,
   quizStats: { correct: 0, wrong: 0 },
+  quizSessionWrongIds: [],
+  quizSessionSpokenIds: [],
+  quizComplete: false,
   currentQuestion: null,
   quizHintVisible: false,
   answerState: null,
@@ -290,7 +301,18 @@ function applyQuizResult(sentence, isCorrect) {
 }
 
 function toggleFavorite(id) { updateSentence(id, (sentence) => ({ ...sentence, favorite: !sentence.favorite, updated_at: Date.now() })); renderApp(); }
-function toggleSpeaking(id) { updateSentence(id, (sentence) => reconcileStatus({ ...sentence, speaking_checked: !sentence.speaking_checked, updated_at: Date.now() })); renderApp(); }
+function toggleSpeaking(id, options = {}) {
+  let nextSpeakingChecked = false;
+  updateSentence(id, (sentence) => {
+    nextSpeakingChecked = !sentence.speaking_checked;
+    return reconcileStatus({ ...sentence, speaking_checked: nextSpeakingChecked, updated_at: Date.now() });
+  });
+  if (options.trackSession) {
+    if (nextSpeakingChecked && !uiState.quizSessionSpokenIds.includes(id)) { uiState.quizSessionSpokenIds.push(id); }
+    if (!nextSpeakingChecked) { uiState.quizSessionSpokenIds = uiState.quizSessionSpokenIds.filter((sentenceId) => sentenceId !== id); }
+  }
+  renderApp();
+}
 function deleteSentence(id) {
   if (!getSentenceById(id) || !window.confirm("이 문장을 삭제할까요?\n삭제하면 되돌릴 수 없습니다.")) { return; }
   state.sentences = state.sentences.filter((sentence) => sentence.id !== id);
@@ -649,6 +671,9 @@ function resetQuizSession() {
   uiState.quizPhase = "base";
   uiState.quizIndex = 0;
   uiState.quizStats = { correct: 0, wrong: 0 };
+  uiState.quizSessionWrongIds = [];
+  uiState.quizSessionSpokenIds = [];
+  uiState.quizComplete = false;
   uiState.currentQuestion = null;
   uiState.quizHintVisible = false;
   uiState.answerState = null;
@@ -693,11 +718,17 @@ function renderBlankQuestion(question, sentence, isAnswered) {
   refs.quizInputArea.innerHTML = `<form class="quiz-answer-form" id="blankAnswerForm"><input id="blankAnswerInput" type="text" placeholder="빈칸에 들어갈 표현" value="${escapeHtml(userValue)}" ${isAnswered ? "disabled" : ""}><button class="quiz-submit-button" type="submit" ${isAnswered ? "disabled" : ""}>확인</button></form>`;
 }
 function renderQuizResult(sentence) {
+  uiState.quizComplete = false;
   const isCorrect = Boolean(uiState.answerState?.isCorrect);
   const hintSource = sentence.pattern || sentence.note || "문장 구조를 다시 한 번 확인해 보세요.";
+  refs.quizTop.classList.remove("hidden-field");
+  refs.resetQuizButton.classList.remove("hidden-field");
   refs.quizResultCard.classList.remove("hidden-field");
+  refs.quizResultCard.classList.remove("is-complete");
   refs.quizResultCard.classList.toggle("is-correct", isCorrect);
   refs.quizResultCard.classList.toggle("is-wrong", !isCorrect);
+  refs.quizFeedbackText.classList.remove("hidden-field");
+  refs.quizRepeatPromptText.classList.remove("complete-callout");
   refs.quizFeedbackText.textContent = isCorrect ? "정답!" : "오답";
   refs.quizRepeatPromptText.textContent = "한 번 읽어보세요.";
   refs.resultEnglishText.textContent = sentence.english;
@@ -707,40 +738,81 @@ function renderQuizResult(sentence) {
   refs.resultNoteText.textContent = sentence.note || "메모 없음";
   refs.quizHintLine.textContent = isCorrect ? "" : `힌트: ${hintSource}`;
   refs.quizHintLine.classList.toggle("hidden-field", isCorrect);
+  refs.resultHero.classList.remove("hidden-field");
+  refs.resultMetaGrid.classList.remove("hidden-field");
+  refs.quizCompleteSummary.classList.add("hidden-field");
+  refs.quizCompletePreview.classList.add("hidden-field");
+  refs.quizCompleteSummary.innerHTML = "";
+  refs.quizCompletePreview.innerHTML = "";
   refs.resultSpeakingButton.dataset.id = sentence.id;
   refs.resultSpeakingButton.textContent = sentence.speaking_checked ? "말해봄 완료" : "말해봄";
   refs.resultSpeakingButton.classList.remove("hidden-field");
   refs.resultSpeakingButton.classList.toggle("is-complete", sentence.speaking_checked);
 }
 function renderQuizCompleteState() {
-  refs.quizModeBadge.textContent = QUIZ_MODES[uiState.quizMode].label;
-  refs.quizPromptText.textContent = "이번 세션을 마쳤어요.";
-  refs.quizHintText.textContent = `정답 ${uiState.quizStats.correct}개 · 오답 ${uiState.quizStats.wrong}개`;
+  const wrongCount = uiState.quizSessionWrongIds.length;
+  const hasWrong = wrongCount > 0;
+  const sessionSentenceCount = new Set([...uiState.quizQueue, ...uiState.quizRetryQueue]).size;
+  const spokenCount = uiState.quizSessionSpokenIds.length;
+  const hasUnspoken = spokenCount < sessionSentenceCount;
+  uiState.quizComplete = true;
+  refs.quizTop.classList.add("hidden-field");
+  refs.quizModeBadge.textContent = "완료";
+  refs.quizPromptText.textContent = "오늘 퀴즈 완료";
+  refs.quizHintText.textContent = "";
+  refs.resetQuizButton.classList.add("hidden-field");
   refs.quizHintButton.classList.add("hidden-field");
-  refs.quizHintText.classList.remove("hidden-field");
+  refs.quizHintText.classList.add("hidden-field");
   refs.quizFavoriteButton.classList.add("hidden-field");
   refs.quizSpeakingButton.classList.add("hidden-field");
   refs.quizInputArea.innerHTML = "";
   refs.quizChoiceArea.innerHTML = "";
   refs.quizResultCard.classList.remove("hidden-field");
+  refs.quizResultCard.classList.add("is-complete");
   refs.quizResultCard.classList.remove("is-wrong");
-  refs.quizResultCard.classList.add("is-correct");
-  refs.quizFeedbackText.textContent = "새 라운드를 시작하면 우선순위대로 다시 복습할 수 있어요.";
-  refs.quizRepeatPromptText.textContent = "자주 틀린 문장은 다시 더 자주 나오게 됩니다.";
-  refs.resultEnglishText.textContent = `전체 문장 ${state.sentences.length}`;
-  refs.resultKoreanText.textContent = `복습 필요 ${state.sentences.filter(isReviewNeeded).length}`;
-  refs.resultPatternText.textContent = `즐겨찾기 ${state.sentences.filter((sentence) => sentence.favorite).length}`;
-  refs.resultExampleText.textContent = `말하기 미완료 ${state.sentences.filter((sentence) => !sentence.speaking_checked).length}`;
-  refs.resultNoteText.textContent = "적은 문장을 반복해서 내 표현으로 만들어 보세요.";
+  refs.quizResultCard.classList.remove("is-correct");
+  refs.quizFeedbackText.classList.add("hidden-field");
+  refs.quizFeedbackText.textContent = "";
+  refs.quizRepeatPromptText.classList.add("complete-callout");
+  refs.quizRepeatPromptText.textContent = hasWrong ? "한 세트 끝났어요." : "한 세트 잘 마쳤어요.";
+  refs.resultHero.classList.add("hidden-field");
+  refs.resultMetaGrid.classList.add("hidden-field");
+  refs.quizCompleteSummary.innerHTML = `
+    <div class="complete-summary-card">
+      <div class="complete-summary-grid">
+        <div class="complete-stat">
+          <span>맞춘 문장</span>
+          <strong>${uiState.quizStats.correct}</strong>
+        </div>
+        <div class="complete-stat">
+          <span>틀린 문장</span>
+          <strong>${uiState.quizStats.wrong}</strong>
+          ${hasWrong ? "" : "<p>틀린 문장이 없어요 👍</p>"}
+        </div>
+        <div class="complete-stat">
+          <span>말해본 문장</span>
+          <strong>${spokenCount}</strong>
+          ${hasUnspoken ? "<p>아직 말해보지 않은 문장이 있어요.<br>한 번 소리 내어 읽어보면 더 잘 남아요.</p>" : ""}
+        </div>
+      </div>
+    </div>
+  `;
+  refs.quizCompleteSummary.classList.remove("hidden-field");
+  refs.quizCompletePreview.innerHTML = hasWrong ? `<div class="complete-preview-message">헷갈린 문장이 있어요.<br>지금 한 번 더 보면 더 잘 남아요.</div>` : "";
+  refs.quizCompletePreview.classList.toggle("hidden-field", !hasWrong);
   refs.quizHintLine.textContent = "";
   refs.quizHintLine.classList.add("hidden-field");
   refs.resultSpeakingButton.classList.add("hidden-field");
-  refs.revealAnswerButton.disabled = true;
-  refs.nextQuestionButton.disabled = true;
+  refs.revealAnswerButton.textContent = hasWrong ? "틀린 문장 다시 보기" : "한 번 더 해보기";
+  refs.nextQuestionButton.textContent = "홈으로";
+  refs.revealAnswerButton.disabled = false;
+  refs.nextQuestionButton.disabled = false;
 }
 function renderQuiz() {
   refs.modeButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.mode === uiState.quizMode));
+  refs.quizTop.classList.remove("hidden-field");
   const eligible = getQuizEligibleSentences();
+  refs.resetQuizButton.classList.remove("hidden-field");
   if (eligible.length && !uiState.quizQueue.length && !uiState.quizRetryQueue.length) {
     uiState.quizQueue = eligible.map((sentence) => sentence.id).slice(0, QUIZ_BASE_SESSION_SIZE);
   }
@@ -775,6 +847,10 @@ function renderQuiz() {
   refs.quizHintText.textContent = question.hint || QUIZ_MODES[uiState.quizMode].promptPrefix;
   refs.quizHintButton.classList.toggle("hidden-field", isAnswered || !question.hint || uiState.quizHintVisible);
   refs.quizHintText.classList.toggle("hidden-field", isAnswered || !uiState.quizHintVisible);
+  refs.quizFeedbackText.classList.remove("hidden-field");
+  refs.quizRepeatPromptText.classList.remove("complete-callout");
+  refs.revealAnswerButton.textContent = "정답 보기";
+  refs.nextQuestionButton.textContent = "다음 문장";
   refs.revealAnswerButton.disabled = isAnswered || !uiState.revealReady;
   refs.nextQuestionButton.disabled = !isAnswered;
   if (isAnswered) {
@@ -800,6 +876,7 @@ function finalizeQuizAnswer(isCorrect, userValue) {
   if (isCorrect) { uiState.quizStats.correct += 1; }
   else {
     uiState.quizStats.wrong += 1;
+    if (!uiState.quizSessionWrongIds.includes(sentence.id)) { uiState.quizSessionWrongIds.push(sentence.id); }
     if (uiState.quizPhase === "base" && !uiState.quizRetrySource.includes(sentence.id)) {
       uiState.quizRetrySource.push(sentence.id);
     }
@@ -820,10 +897,46 @@ function moveToNextQuestion() {
   }
   uiState.currentQuestion = null;
   uiState.quizHintVisible = false;
+  uiState.quizComplete = false;
   uiState.answerState = null;
   uiState.answerControlsVisible = false;
   uiState.revealReady = false;
   renderApp();
+}
+function startFocusedWrongReview() {
+  const wrongQueue = uiState.quizSessionWrongIds.filter((sentenceId) => getSentenceById(sentenceId));
+  if (!wrongQueue.length) { resetQuizSession(); return; }
+  clearQuizTimers();
+  uiState.quizQueue = wrongQueue;
+  uiState.quizRetryQueue = [];
+  uiState.quizRetrySource = [];
+  uiState.quizPhase = "base";
+  uiState.quizIndex = 0;
+  uiState.quizStats = { correct: 0, wrong: 0 };
+  uiState.quizSessionWrongIds = [];
+  uiState.quizSessionSpokenIds = [];
+  uiState.quizComplete = false;
+  uiState.currentQuestion = null;
+  uiState.quizHintVisible = false;
+  uiState.answerState = null;
+  uiState.answerControlsVisible = false;
+  uiState.revealReady = false;
+  renderApp();
+}
+function handlePrimaryQuizAction() {
+  if (uiState.quizComplete) {
+    if (uiState.quizSessionWrongIds.length) { startFocusedWrongReview(); }
+    else { resetQuizSession(); }
+    return;
+  }
+  revealAnswer();
+}
+function handleSecondaryQuizAction() {
+  if (uiState.quizComplete) {
+    setCurrentView("dashboard");
+    return;
+  }
+  moveToNextQuestion();
 }
 function showQuizHint() {
   if (!uiState.currentQuestion?.hint || uiState.answerState) { return; }
@@ -840,6 +953,8 @@ function setCurrentView(viewName) { uiState.currentView = refs.views[viewName] ?
 function renderView() {
   Object.entries(refs.views).forEach(([viewName, element]) => element.classList.toggle("is-active", uiState.currentView === viewName));
   refs.viewButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.viewTarget === uiState.currentView));
+  refs.heroCard?.classList.toggle("hidden-field", uiState.currentView !== "dashboard");
+  refs.tabBar?.classList.toggle("hidden-field", uiState.currentView === "quiz");
 }
 function handleLibraryAction(event) {
   const button = event.target.closest("button[data-action]");
@@ -909,13 +1024,14 @@ function bindEvents() {
     const actionButton = event.target.closest("[data-quiz-action]");
     if (actionButton?.dataset.quizAction === "show-options") { showQuizOptionsNow(); }
   });
-  refs.revealAnswerButton.addEventListener("click", revealAnswer);
-  refs.nextQuestionButton.addEventListener("click", moveToNextQuestion);
+  refs.revealAnswerButton.addEventListener("click", handlePrimaryQuizAction);
+  refs.nextQuestionButton.addEventListener("click", handleSecondaryQuizAction);
   refs.quizHintButton.addEventListener("click", showQuizHint);
+  refs.quizBackButton.addEventListener("click", () => setCurrentView("dashboard"));
   refs.resetQuizButton.addEventListener("click", resetQuizSession);
   refs.quizFavoriteButton.addEventListener("click", () => { if (refs.quizFavoriteButton.dataset.id) { toggleFavorite(refs.quizFavoriteButton.dataset.id); } });
-  refs.quizSpeakingButton.addEventListener("click", () => { if (refs.quizSpeakingButton.dataset.id) { toggleSpeaking(refs.quizSpeakingButton.dataset.id); } });
-  refs.resultSpeakingButton.addEventListener("click", () => { if (refs.resultSpeakingButton.dataset.id) { toggleSpeaking(refs.resultSpeakingButton.dataset.id); } });
+  refs.quizSpeakingButton.addEventListener("click", () => { if (refs.quizSpeakingButton.dataset.id) { toggleSpeaking(refs.quizSpeakingButton.dataset.id, { trackSession: true }); } });
+  refs.resultSpeakingButton.addEventListener("click", () => { if (refs.resultSpeakingButton.dataset.id) { toggleSpeaking(refs.resultSpeakingButton.dataset.id, { trackSession: true }); } });
 }
 function renderApp() {
   populateCategoryInputs();
