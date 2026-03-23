@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2efe6">
+  <title>내 문장 영어 퀴즈</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero-card">
+      <div class="hero-copy">
+        <p class="eyebrow">내 문장 반복 학습</p>
+        <h1>적은 문장을 반복해서 내 표현으로 만드는 퀴즈 앱</h1>
+        <p class="hero-text">이 앱은 많이 배우기보다 자주 쓸 문장을 떠올리고, 반복하고, 말해보는 흐름에 맞춰져 있습니다.</p>
+      </div>
+
+      <div class="hero-actions">
+        <button class="primary-button" type="button" data-view-target="quiz">바로 퀴즈</button>
+        <button class="secondary-button" type="button" data-view-target="add">문장 추가</button>
+      </div>
+    </section>
+
+    <nav class="tab-bar" aria-label="화면 이동">
+      <button class="tab-button is-active" type="button" data-view-target="dashboard">홈</button>
+      <button class="tab-button" type="button" data-view-target="library">문장</button>
+      <button class="tab-button" type="button" data-view-target="add">추가</button>
+      <button class="tab-button" type="button" data-view-target="quiz">퀴즈</button>
+    </nav>
+
+    <section id="dashboardView" class="view is-active">
+      <div class="summary-grid">
+        <article class="summary-card">
+          <span>전체 문장</span>
+          <strong id="totalCountText">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>복습 필요</span>
+          <strong id="reviewCountText">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>말하기 미완료</span>
+          <strong id="speakingPendingText">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>즐겨찾기</span>
+          <strong id="favoriteCountText">0</strong>
+        </article>
+      </div>
+
+      <div class="dashboard-grid">
+        <article class="panel-card">
+          <div class="section-head">
+            <div>
+              <p class="section-label">오늘</p>
+              <h2>오늘의 문장 5개</h2>
+            </div>
+          </div>
+          <div id="todaySentenceList" class="mini-card-list"></div>
+        </article>
+
+        <article class="panel-card">
+          <div class="section-head">
+            <div>
+              <p class="section-label">최근</p>
+              <h2>최근 추가 문장</h2>
+            </div>
+          </div>
+          <div id="recentSentenceList" class="mini-card-list"></div>
+        </article>
+
+        <article class="panel-card">
+          <div class="section-head">
+            <div>
+              <p class="section-label">즐겨찾기</p>
+              <h2>즐겨찾기 문장</h2>
+            </div>
+          </div>
+          <div id="favoriteSentenceList" class="mini-card-list"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="libraryView" class="view">
+      <article class="panel-card">
+        <div class="section-head">
+          <div>
+            <p class="section-label">문장 보관함</p>
+            <h2>문장 리스트</h2>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <label class="field">
+            <span>카테고리</span>
+            <select id="categoryFilter"></select>
+          </label>
+
+          <label class="field">
+            <span>상태</span>
+            <select id="statusFilter">
+              <option value="all">전체</option>
+              <option value="new">새 문장</option>
+              <option value="learning">학습 중</option>
+              <option value="familiar">익숙함</option>
+            </select>
+          </label>
+
+          <label class="field search-field">
+            <span>검색</span>
+            <input id="searchInput" type="text" placeholder="영어, 한국어, 메모">
+          </label>
+
+          <label class="checkbox-field">
+            <input id="favoriteOnlyFilter" type="checkbox">
+            <span>즐겨찾기만</span>
+          </label>
+        </div>
+
+        <div id="sentenceList" class="sentence-list"></div>
+      </article>
+    </section>
+
+    <section id="addView" class="view">
+      <article class="panel-card">
+        <div class="section-head">
+          <div>
+            <p class="section-label">문장 추가</p>
+            <h2 id="addViewTitle">문장 추가</h2>
+          </div>
+        </div>
+
+        <div id="editNotice" class="edit-notice hidden-field">
+          <p id="editNoticeText" class="edit-notice-text"></p>
+          <button id="cancelEditButton" class="secondary-button compact-button" type="button">수정 취소</button>
+        </div>
+
+        <form id="sentenceForm" class="sentence-form">
+          <label class="field">
+            <span>한국어</span>
+            <textarea id="koreanInput" name="korean" rows="2" placeholder="짧은 한국어 문장을 입력하세요." required></textarea>
+          </label>
+
+          <label class="field">
+            <span>영어</span>
+            <textarea id="englishInput" name="english" rows="2" placeholder="영어 문장을 입력하세요&#10;예: I just want to stay home today." required></textarea>
+          </label>
+
+          <p id="similarSentenceHint" class="inline-hint hidden-field"></p>
+
+          <details id="additionalInfoDetails" class="additional-details">
+            <summary>
+              <span class="summary-closed">추가 정보 입력 ▾</span>
+              <span class="summary-open">추가 정보 숨기기 ▴</span>
+            </summary>
+
+            <div class="form-grid add-info-grid">
+              <label class="field">
+                <span>카테고리</span>
+                <select id="categoryInput" name="category"></select>
+              </label>
+
+              <label id="customCategoryField" class="field hidden-field">
+                <span>직접 입력</span>
+                <input id="customCategoryInput" type="text" placeholder="회의, 전화, 공부">
+              </label>
+            </div>
+
+            <label class="field">
+              <span>문장 구조</span>
+              <input id="patternInput" name="pattern" type="text" placeholder="영어 문장을 입력하면 자동 생성됩니다." readonly>
+            </label>
+
+            <div id="difficultyPreview" class="auto-meta">난이도는 문장 길이와 구조를 보고 자동으로 정해집니다.</div>
+
+            <label class="field">
+              <span>메모</span>
+              <input id="noteInput" name="note" type="text" placeholder="상황이나 느낌을 짧게 적어보세요.">
+            </label>
+
+            <div class="example-toggle-wrap">
+              <button id="toggleExampleButton" class="secondary-button compact-button" type="button">+ 확장 예문 추가</button>
+            </div>
+
+            <label id="exampleField" class="field hidden-field">
+              <span>확장 예문</span>
+              <textarea id="exampleInput" name="example" rows="2" placeholder="I just want to stay home and do nothing tonight."></textarea>
+            </label>
+          </details>
+
+          <div class="form-actions">
+            <button id="submitSentenceButton" class="primary-button" type="submit">문장 저장</button>
+            <button id="forceDuplicateSaveButton" class="secondary-button compact-button hidden-field" type="button">중복이어도 저장</button>
+            <p id="formMessage" class="form-message" aria-live="polite"></p>
+          </div>
+
+          <div id="postSaveActions" class="post-save-actions hidden-field">
+            <button id="continueAddButton" class="secondary-button compact-button" type="button">계속 추가하기</button>
+            <button id="goHomeAfterSaveButton" class="primary-button compact-button" type="button">홈으로</button>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <section id="quizView" class="view">
+      <article class="panel-card">
+        <div class="section-head quiz-top">
+          <div>
+            <p class="section-label">퀴즈</p>
+            <h2>떠올리기 + 반복 + 말해보기</h2>
+            <div class="mode-chip-row" role="tablist" aria-label="퀴즈 모드">
+              <button class="mode-chip is-active" type="button" data-mode="ko_to_en">한국어 → 영어</button>
+              <button class="mode-chip" type="button" data-mode="en_to_ko">영어 → 뜻</button>
+              <button class="mode-chip" type="button" data-mode="fill_blank">빈칸 채우기</button>
+            </div>
+          </div>
+
+          <div class="quiz-summary">
+            <article class="mini-stat">
+              <span>남은 문장</span>
+              <strong id="quizRemainingText">0</strong>
+            </article>
+            <article class="mini-stat">
+              <span>진행</span>
+              <strong id="quizProgressText">0 / 0</strong>
+            </article>
+            <label class="checkbox-field auto-next-field">
+              <input id="autoNextToggle" type="checkbox" checked>
+              <span>정답 자동 진행</span>
+            </label>
+            <button id="resetQuizButton" class="secondary-button compact-button" type="button">새 라운드</button>
+          </div>
+        </div>
+
+        <div id="quizEmptyState" class="empty-state hidden-field"></div>
+
+        <section id="quizCard" class="quiz-card">
+          <div class="quiz-card-top">
+            <div>
+              <span id="quizModeBadge" class="mode-badge"></span>
+              <h3 id="quizPromptText" class="quiz-prompt"></h3>
+              <p id="quizHintText" class="quiz-hint"></p>
+            </div>
+
+            <div class="quiz-toggle-row">
+              <button id="quizFavoriteButton" class="pill-button" type="button">즐겨찾기</button>
+              <button id="quizSpeakingButton" class="pill-button" type="button">말해봄</button>
+            </div>
+          </div>
+
+          <div id="quizInputArea" class="quiz-input-area"></div>
+          <div id="quizChoiceArea" class="choice-list"></div>
+
+          <article id="quizResultCard" class="result-card hidden-field" aria-live="polite">
+            <p id="quizFeedbackText" class="feedback-text"></p>
+            <p id="quizRepeatPromptText" class="repeat-prompt"></p>
+            <div class="result-hero">
+              <strong id="resultEnglishText" class="result-english"></strong>
+              <p id="resultKoreanText" class="result-korean"></p>
+            </div>
+            <p id="quizHintLine" class="quiz-hint-line hidden-field"></p>
+            <div class="result-grid">
+              <div>
+                <span>기본 틀</span>
+                <strong id="resultPatternText"></strong>
+              </div>
+              <div>
+                <span>응용 예문</span>
+                <strong id="resultExampleText"></strong>
+              </div>
+              <div class="wide-result">
+                <span>메모</span>
+                <strong id="resultNoteText"></strong>
+              </div>
+            </div>
+            <button id="resultSpeakingButton" class="primary-button result-speaking-button hidden-field" type="button">말해봄</button>
+          </article>
+
+          <div class="quiz-footer">
+            <button id="revealAnswerButton" class="secondary-button" type="button">정답 보기</button>
+            <button id="nextQuestionButton" class="primary-button" type="button" disabled>다음 문장</button>
+          </div>
+        </section>
+      </article>
+    </section>
+  </main>
+
+  <script src="./script.js" defer></script>
+</body>
+</html>
