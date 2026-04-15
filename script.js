@@ -5,6 +5,7 @@ const QUIZ_THINKING_DELAY_MS = 3000;
 const QUIZ_AUTO_NEXT_DELAY_MS = 2600;
 const QUIZ_BASE_SESSION_SIZE = 5;
 const REVIEW_STALE_UNIT_MS = 1000 * 60 * 60 * 24;
+const EFFECT_GAIN = 0.028;
 const QUIZ_MODES = {
   ko_to_en: {
     label: "한국어 → 영어",
@@ -96,6 +97,7 @@ const refs = {
   quizRemainingText: document.getElementById("quizRemainingText"),
   quizProgressText: document.getElementById("quizProgressText"),
   autoNextToggle: document.getElementById("autoNextToggle"),
+  soundToggle: document.getElementById("soundToggle"),
   quizBackButton: document.getElementById("quizBackButton"),
   resetQuizButton: document.getElementById("resetQuizButton"),
   quizEmptyState: document.getElementById("quizEmptyState"),
@@ -114,6 +116,7 @@ const refs = {
   quizHintLine: document.getElementById("quizHintLine"),
   resultHero: document.getElementById("resultHero"),
   resultEnglishText: document.getElementById("resultEnglishText"),
+  resultListenButton: document.getElementById("resultListenButton"),
   resultKoreanText: document.getElementById("resultKoreanText"),
   resultMetaGrid: document.getElementById("resultMetaGrid"),
   resultPatternText: document.getElementById("resultPatternText"),
@@ -149,7 +152,13 @@ let uiState = {
   answerState: null,
   answerControlsVisible: false,
   revealReady: false,
+  completionSoundPlayed: false,
   quizTimers: { thinking: null, autoNext: null }
+};
+
+const audioState = {
+  context: null,
+  preferredVoice: null
 };
 
 function createId() { return `sentence-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`; }
@@ -244,7 +253,10 @@ function hydrateState(saved) {
   });
   return {
     sentences: [...merged.values()].sort((left, right) => right.created_at - left.created_at),
-    preferences: { quiz_mode: QUIZ_MODES[saved?.preferences?.quiz_mode] ? saved.preferences.quiz_mode : "ko_to_en" }
+    preferences: {
+      quiz_mode: QUIZ_MODES[saved?.preferences?.quiz_mode] ? saved.preferences.quiz_mode : "ko_to_en",
+      sound_enabled: saved?.preferences?.sound_enabled !== false
+    }
   };
 }
 
@@ -258,7 +270,98 @@ function loadState() {
 
 function saveState() {
   state.preferences.quiz_mode = uiState.quizMode;
+  state.preferences.sound_enabled = state.preferences.sound_enabled !== false;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function hasSpeechSupport() {
+  return typeof window !== "undefined"
+    && "speechSynthesis" in window
+    && typeof window.SpeechSynthesisUtterance !== "undefined";
+}
+
+function getPreferredEnglishVoice() {
+  if (!hasSpeechSupport()) { return null; }
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) { return null; }
+  if (audioState.preferredVoice && voices.some((voice) => voice.voiceURI === audioState.preferredVoice.voiceURI)) {
+    return audioState.preferredVoice;
+  }
+  const preferred = voices.find((voice) => /^en(-|_)/i.test(voice.lang) && /google|samantha|daniel|serena|alex|victoria|enhanced/i.test(`${voice.name} ${voice.voiceURI}`))
+    || voices.find((voice) => /^en(-|_)/i.test(voice.lang))
+    || null;
+  audioState.preferredVoice = preferred;
+  return preferred;
+}
+
+function speakEnglishText(text) {
+  const content = cleanText(text);
+  if (!content || !hasSpeechSupport()) { return; }
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(content);
+    const voice = getPreferredEnglishVoice();
+    if (voice) { utterance.voice = voice; }
+    utterance.lang = voice?.lang || "en-US";
+    utterance.rate = 0.94;
+    utterance.pitch = 1;
+    utterance.volume = 0.9;
+    window.speechSynthesis.speak(utterance);
+  } catch (error) {}
+}
+
+function isSoundEnabled() {
+  return state.preferences.sound_enabled !== false;
+}
+
+function ensureAudioContext() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) { return null; }
+  if (!audioState.context) { audioState.context = new AudioContextClass(); }
+  if (audioState.context.state === "suspended") { audioState.context.resume().catch(() => {}); }
+  return audioState.context;
+}
+
+function playTone(note) {
+  const context = ensureAudioContext();
+  if (!context || !isSoundEnabled()) { return; }
+  const now = context.currentTime;
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = note.type || "sine";
+  oscillator.frequency.setValueAtTime(note.frequency, now + note.delay);
+  gain.gain.setValueAtTime(0.0001, now + note.delay);
+  gain.gain.exponentialRampToValueAtTime(note.gain ?? EFFECT_GAIN, now + note.delay + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + note.delay + note.duration);
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.start(now + note.delay);
+  oscillator.stop(now + note.delay + note.duration + 0.02);
+}
+
+function playEffectSound(kind) {
+  if (!isSoundEnabled()) { return; }
+  if (kind === "correct") {
+    [
+      { frequency: 680, delay: 0, duration: 0.12, gain: 0.022, type: "sine" },
+      { frequency: 860, delay: 0.08, duration: 0.16, gain: 0.018, type: "triangle" }
+    ].forEach(playTone);
+    return;
+  }
+  if (kind === "wrong") {
+    [
+      { frequency: 250, delay: 0, duration: 0.16, gain: 0.02, type: "sine" },
+      { frequency: 210, delay: 0.07, duration: 0.18, gain: 0.016, type: "triangle" }
+    ].forEach(playTone);
+    return;
+  }
+  if (kind === "complete") {
+    [
+      { frequency: 620, delay: 0, duration: 0.1, gain: 0.015, type: "triangle" },
+      { frequency: 780, delay: 0.09, duration: 0.12, gain: 0.015, type: "triangle" },
+      { frequency: 940, delay: 0.18, duration: 0.18, gain: 0.013, type: "sine" }
+    ].forEach(playTone);
+  }
 }
 
 function updateSentence(id, transformer) {
@@ -589,7 +692,10 @@ function renderSentenceList() {
       <div class="sentence-main-card">
         <button class="favorite-icon-button${sentence.favorite ? " is-active" : ""}" type="button" data-action="toggle-favorite" data-id="${escapeHtml(sentence.id)}" aria-label="${sentence.favorite ? "즐겨찾기 해제" : "즐겨찾기"}" title="${sentence.favorite ? "즐겨찾기 해제" : "즐겨찾기"}">${sentence.favorite ? "★" : "☆"}</button>
         <p class="sentence-korean">${escapeHtml(sentence.korean)}</p>
-        <p class="sentence-english">${escapeHtml(sentence.english)}</p>
+        <div class="sentence-english-row">
+          <p class="sentence-english">${escapeHtml(sentence.english)}</p>
+          ${hasSpeechSupport() ? `<button class="audio-icon-button sentence-audio-button" type="button" data-action="speak-english" data-text="${escapeHtml(sentence.english)}" aria-label="영어 문장 듣기" title="영어 문장 듣기">듣기</button>` : ""}
+        </div>
       </div>
       <div class="sentence-action-row">
         <button class="primary-button sentence-action-button" type="button" data-action="toggle-speaking" data-id="${escapeHtml(sentence.id)}">${sentence.speaking_checked ? "말해봄 완료" : "말해봄"}</button>
@@ -679,6 +785,7 @@ function resetQuizSession() {
   uiState.answerState = null;
   uiState.answerControlsVisible = false;
   uiState.revealReady = false;
+  uiState.completionSoundPlayed = false;
   saveState();
   renderApp();
 }
@@ -732,6 +839,8 @@ function renderQuizResult(sentence) {
   refs.quizFeedbackText.textContent = isCorrect ? "정답!" : "오답";
   refs.quizRepeatPromptText.textContent = "한 번 읽어보세요.";
   refs.resultEnglishText.textContent = sentence.english;
+  refs.resultListenButton.dataset.text = sentence.english;
+  refs.resultListenButton.classList.toggle("hidden-field", !hasSpeechSupport());
   refs.resultKoreanText.textContent = sentence.korean;
   refs.resultPatternText.textContent = sentence.pattern || "-";
   refs.resultExampleText.textContent = sentence.example || "-";
@@ -776,6 +885,7 @@ function renderQuizCompleteState() {
   refs.quizRepeatPromptText.classList.add("complete-callout");
   refs.quizRepeatPromptText.textContent = hasWrong ? "한 세트 끝났어요." : "한 세트 잘 마쳤어요.";
   refs.resultHero.classList.add("hidden-field");
+  refs.resultListenButton.classList.add("hidden-field");
   refs.resultMetaGrid.classList.add("hidden-field");
   refs.quizCompleteSummary.innerHTML = `
     <div class="complete-summary-card">
@@ -807,11 +917,16 @@ function renderQuizCompleteState() {
   refs.nextQuestionButton.textContent = "홈으로";
   refs.revealAnswerButton.disabled = false;
   refs.nextQuestionButton.disabled = false;
+  if (!uiState.completionSoundPlayed) {
+    playEffectSound("complete");
+    uiState.completionSoundPlayed = true;
+  }
 }
 function renderQuiz() {
   refs.modeButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.mode === uiState.quizMode));
   refs.quizTop.classList.remove("hidden-field");
   const eligible = getQuizEligibleSentences();
+  refs.soundToggle.checked = isSoundEnabled();
   refs.resetQuizButton.classList.add("hidden-field");
   if (eligible.length && !uiState.quizQueue.length && !uiState.quizRetryQueue.length) {
     uiState.quizQueue = eligible.map((sentence) => sentence.id).slice(0, QUIZ_BASE_SESSION_SIZE);
@@ -864,6 +979,7 @@ function renderQuiz() {
   refs.quizResultCard.classList.remove("is-correct", "is-wrong");
   refs.quizHintLine.classList.add("hidden-field");
   refs.resultSpeakingButton.classList.add("hidden-field");
+  refs.resultListenButton.classList.add("hidden-field");
   if (!uiState.answerControlsVisible) { renderQuizThinkingState(); }
   else if (uiState.quizMode === "fill_blank") { renderBlankQuestion(question, sentence, false); }
   else { renderChoiceQuestion(question, sentence, false); }
@@ -875,6 +991,7 @@ function finalizeQuizAnswer(isCorrect, userValue) {
   if (!question || !sentence) { return; }
   updateSentence(sentence.id, (currentSentence) => applyQuizResult(currentSentence, isCorrect));
   uiState.answerState = { questionId: sentence.id, isCorrect, userValue };
+  playEffectSound(isCorrect ? "correct" : "wrong");
   if (isCorrect) { uiState.quizStats.correct += 1; }
   else {
     uiState.quizStats.wrong += 1;
@@ -903,6 +1020,7 @@ function moveToNextQuestion() {
   uiState.answerState = null;
   uiState.answerControlsVisible = false;
   uiState.revealReady = false;
+  uiState.completionSoundPlayed = false;
   renderApp();
 }
 function startFocusedWrongReview() {
@@ -923,6 +1041,7 @@ function startFocusedWrongReview() {
   uiState.answerState = null;
   uiState.answerControlsVisible = false;
   uiState.revealReady = false;
+  uiState.completionSoundPlayed = false;
   renderApp();
 }
 function handlePrimaryQuizAction() {
@@ -964,6 +1083,7 @@ function handleLibraryAction(event) {
   if (button.dataset.action === "edit-sentence") { enterEditMode(button.dataset.id); }
   if (button.dataset.action === "toggle-favorite") { toggleFavorite(button.dataset.id); }
   if (button.dataset.action === "toggle-speaking") { toggleSpeaking(button.dataset.id); }
+  if (button.dataset.action === "speak-english") { speakEnglishText(button.dataset.text); }
   if (button.dataset.action === "delete-sentence") { deleteSentence(button.dataset.id); }
 }
 function handleViewButtons(event) { const button = event.target.closest("[data-view-target]"); if (button) { setCurrentView(button.dataset.viewTarget); } }
@@ -1031,9 +1151,16 @@ function bindEvents() {
   refs.quizHintButton.addEventListener("click", showQuizHint);
   refs.quizBackButton.addEventListener("click", () => setCurrentView("dashboard"));
   refs.resetQuizButton.addEventListener("click", resetQuizSession);
+  refs.soundToggle.addEventListener("change", (event) => {
+    state.preferences.sound_enabled = event.target.checked;
+    saveState();
+  });
   refs.quizFavoriteButton.addEventListener("click", () => { if (refs.quizFavoriteButton.dataset.id) { toggleFavorite(refs.quizFavoriteButton.dataset.id); } });
   refs.quizSpeakingButton.addEventListener("click", () => { if (refs.quizSpeakingButton.dataset.id) { toggleSpeaking(refs.quizSpeakingButton.dataset.id, { trackSession: true }); } });
   refs.resultSpeakingButton.addEventListener("click", () => { if (refs.resultSpeakingButton.dataset.id) { toggleSpeaking(refs.resultSpeakingButton.dataset.id, { trackSession: true }); } });
+  refs.resultListenButton.addEventListener("click", () => {
+    if (refs.resultListenButton.dataset.text) { speakEnglishText(refs.resultListenButton.dataset.text); }
+  });
 }
 function renderApp() {
   populateCategoryInputs();
@@ -1044,5 +1171,13 @@ function renderApp() {
   renderSentenceList();
   renderQuiz();
 }
-function init() { bindEvents(); resetSentenceForm({ clearMessage: true }); renderApp(); }
+function init() {
+  bindEvents();
+  if (hasSpeechSupport()) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", () => { audioState.preferredVoice = null; });
+  }
+  resetSentenceForm({ clearMessage: true });
+  renderApp();
+}
 init();

@@ -203,6 +203,10 @@
               <input id="autoNextToggle" type="checkbox">
               <span>정답 자동 진행</span>
             </label>
+            <label class="checkbox-field compact-sound-field">
+              <input id="soundToggle" type="checkbox" checked>
+              <span>효과음</span>
+            </label>
             <button id="resetQuizButton" class="secondary-button compact-button hidden-field" type="button">새 라운드</button>
           </div>
           <div class="mode-chip-row" role="tablist" aria-label="퀴즈 모드">
@@ -236,7 +240,10 @@
             <p id="quizFeedbackText" class="feedback-text"></p>
             <p id="quizRepeatPromptText" class="repeat-prompt"></p>
             <div id="resultHero" class="result-hero">
-              <strong id="resultEnglishText" class="result-english"></strong>
+              <div class="result-english-row">
+                <strong id="resultEnglishText" class="result-english"></strong>
+                <button id="resultListenButton" class="audio-icon-button hidden-field" type="button" aria-label="영어 문장 듣기" title="영어 문장 듣기">듣기</button>
+              </div>
               <p id="resultKoreanText" class="result-korean"></p>
             </div>
             <p id="quizHintLine" class="quiz-hint-line hidden-field"></p>
