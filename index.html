@@ -237,15 +237,15 @@
           <div id="quizChoiceArea" class="choice-list"></div>
 
           <article id="quizResultCard" class="result-card hidden-field" aria-live="polite">
-            <p id="quizFeedbackText" class="feedback-text"></p>
-            <p id="quizRepeatPromptText" class="repeat-prompt"></p>
+            <div class="result-feedback-row">
+              <p id="quizFeedbackText" class="feedback-text"></p>
+              <p id="quizRepeatPromptText" class="repeat-prompt"></p>
+            </div>
             <div id="resultHero" class="result-hero">
-              <div class="result-english-row">
-                <strong id="resultEnglishText" class="result-english"></strong>
+              <strong id="resultEnglishText" class="result-english"></strong>
+              <p id="resultKoreanText" class="result-korean"></p>
+              <div class="result-action-row">
                 <button id="resultListenButton" class="audio-icon-button hidden-field" type="button" aria-label="영어 문장 듣기" title="영어 문장 듣기">듣기</button>
-              </div>
-              <div class="result-korean-row">
-                <p id="resultKoreanText" class="result-korean"></p>
                 <button id="resultSpeakingButton" class="pill-button result-speaking-chip hidden-field" type="button">말해봄</button>
               </div>
             </div>

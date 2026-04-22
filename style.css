@@ -412,8 +412,7 @@ button {
   line-height: 1.3;
 }
 
-.sentence-english-row,
-.result-english-row {
+.sentence-english-row {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -979,6 +978,13 @@ select:focus {
   gap: 12px;
 }
 
+.result-feedback-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .result-card.is-complete {
   gap: 16px;
 }
@@ -999,36 +1005,22 @@ select:focus {
   color: var(--ink);
 }
 
-.result-english-row {
-  justify-content: space-between;
-}
-
-.result-english-row .result-english {
-  flex: 1;
-}
-
 .result-korean {
   margin: 0;
   color: var(--muted);
   font-weight: 700;
 }
 
-.result-korean-row {
+.result-action-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  justify-content: space-between;
-}
-
-.result-korean-row .result-korean {
-  flex: 1;
-  min-width: 0;
-  word-break: keep-all;
+  flex-wrap: wrap;
 }
 
 .result-speaking-chip {
   width: auto;
-  min-width: 86px;
+  min-width: 92px;
   padding: 7px 11px;
   font-size: 0.86rem;
   white-space: nowrap;
@@ -1285,15 +1277,20 @@ select:focus {
     padding: 14px;
   }
 
-  .result-korean-row {
-    align-items: flex-start;
+  .result-feedback-row {
+    gap: 8px;
   }
 
+  .result-action-row {
+    gap: 8px;
+  }
+
+  .result-action-row .audio-icon-button,
   .result-speaking-chip {
     width: auto;
     flex: 0 0 auto;
     justify-content: center;
-    min-width: 78px;
+    min-width: 74px;
     padding: 6px 10px;
     font-size: 0.82rem;
   }
