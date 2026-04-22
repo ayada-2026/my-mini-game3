@@ -917,6 +917,7 @@ function renderQuizCompleteState() {
   refs.quizHintLine.textContent = "";
   refs.quizHintLine.classList.add("hidden-field");
   refs.resultSpeakingButton.classList.add("hidden-field");
+  refs.revealAnswerButton.classList.remove("hidden-field");
   refs.revealAnswerButton.textContent = hasWrong ? "틀린 문장 다시 보기" : "한 번 더 해보기";
   refs.nextQuestionButton.textContent = "홈으로";
   refs.revealAnswerButton.disabled = false;
@@ -974,6 +975,7 @@ function renderQuiz() {
   refs.nextQuestionButton.textContent = "다음 문장";
   refs.revealAnswerButton.disabled = isAnswered || !uiState.revealReady;
   refs.nextQuestionButton.disabled = !isAnswered;
+  refs.revealAnswerButton.classList.toggle("hidden-field", isAnswered);
   if (isAnswered) {
     if (uiState.quizMode === "fill_blank") { renderBlankQuestion(question, sentence, true); } else { renderChoiceQuestion(question, sentence, true); }
     renderQuizResult(sentence);

@@ -1022,6 +1022,8 @@ select:focus {
 
 .result-korean-row .result-korean {
   flex: 1;
+  min-width: 0;
+  word-break: keep-all;
 }
 
 .result-speaking-chip {
@@ -1288,6 +1290,9 @@ select:focus {
   }
 
   .result-speaking-chip {
+    width: auto;
+    flex: 0 0 auto;
+    justify-content: center;
     min-width: 78px;
     padding: 6px 10px;
     font-size: 0.82rem;
