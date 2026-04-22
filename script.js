@@ -837,8 +837,9 @@ function renderQuizResult(sentence) {
   refs.quizResultCard.classList.toggle("is-wrong", !isCorrect);
   refs.quizFeedbackText.classList.remove("hidden-field");
   refs.quizRepeatPromptText.classList.remove("complete-callout");
-  refs.quizFeedbackText.textContent = isCorrect ? "정답!" : "오답";
-  refs.quizRepeatPromptText.textContent = "한 번 읽어보세요.";
+  refs.quizFeedbackText.textContent = isCorrect ? "정답 · 한 번 읽어보세요" : "오답 · 한 번 읽어보세요";
+  refs.quizRepeatPromptText.textContent = "";
+  refs.quizRepeatPromptText.classList.add("hidden-field");
   refs.resultEnglishText.textContent = sentence.english;
   refs.resultListenButton.dataset.text = sentence.english;
   refs.resultListenButton.classList.toggle("hidden-field", !hasSpeechSupport());
@@ -885,6 +886,7 @@ function renderQuizCompleteState() {
   refs.quizResultCard.classList.remove("is-correct");
   refs.quizFeedbackText.classList.add("hidden-field");
   refs.quizFeedbackText.textContent = "";
+  refs.quizRepeatPromptText.classList.remove("hidden-field");
   refs.quizRepeatPromptText.classList.add("complete-callout");
   refs.quizRepeatPromptText.textContent = hasWrong ? "한 세트 끝났어요." : "한 세트 잘 마쳤어요.";
   refs.resultHero.classList.add("hidden-field");
@@ -970,7 +972,7 @@ function renderQuiz() {
   refs.quizHintButton.classList.toggle("hidden-field", isAnswered || !question.hint || uiState.quizHintVisible);
   refs.quizHintText.classList.toggle("hidden-field", isAnswered || !uiState.quizHintVisible);
   refs.quizFeedbackText.classList.remove("hidden-field");
-  refs.quizRepeatPromptText.classList.remove("complete-callout");
+  refs.quizRepeatPromptText.classList.remove("complete-callout", "hidden-field");
   refs.revealAnswerButton.textContent = "정답 보기";
   refs.nextQuestionButton.textContent = "다음 문장";
   refs.revealAnswerButton.disabled = isAnswered || !uiState.revealReady;

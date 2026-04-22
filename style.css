@@ -992,7 +992,7 @@ select:focus {
 .result-hero {
   position: relative;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   padding: 16px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.72);
@@ -1016,6 +1016,7 @@ select:focus {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-top: 3px;
 }
 
 .result-speaking-chip {
