@@ -199,20 +199,20 @@
               <span class="quiz-progress-separator">·</span>
               <span class="quiz-progress-copy">남은 <strong id="quizRemainingText">0</strong></span>
             </div>
+            <button id="resetQuizButton" class="secondary-button compact-button hidden-field" type="button">새 라운드</button>
+          </div>
+          <div class="mode-chip-row" aria-label="퀴즈 모드와 설정">
+            <button class="mode-chip is-active" type="button" data-mode="ko_to_en">한국어 → 영어</button>
+            <button class="mode-chip" type="button" data-mode="en_to_ko">영어 → 뜻</button>
+            <button class="mode-chip" type="button" data-mode="fill_blank">빈칸 채우기</button>
             <label class="checkbox-field auto-next-field compact-auto-next">
               <input id="autoNextToggle" type="checkbox">
-              <span>정답 자동 진행</span>
+              <span>자동 진행</span>
             </label>
             <label class="checkbox-field compact-sound-field">
               <input id="soundToggle" type="checkbox" checked>
               <span>효과음</span>
             </label>
-            <button id="resetQuizButton" class="secondary-button compact-button hidden-field" type="button">새 라운드</button>
-          </div>
-          <div class="mode-chip-row" role="tablist" aria-label="퀴즈 모드">
-            <button class="mode-chip is-active" type="button" data-mode="ko_to_en">한국어 → 영어</button>
-            <button class="mode-chip" type="button" data-mode="en_to_ko">영어 → 뜻</button>
-            <button class="mode-chip" type="button" data-mode="fill_blank">빈칸 채우기</button>
           </div>
         </div>
 
@@ -228,7 +228,7 @@
               <p id="quizHintText" class="quiz-hint hidden-field"></p>
             </div>
 
-            <div class="quiz-toggle-row">
+            <div class="quiz-toggle-row hidden-field">
               <button id="quizSpeakingButton" class="pill-button" type="button">말해봄</button>
             </div>
           </div>
@@ -244,26 +244,31 @@
                 <strong id="resultEnglishText" class="result-english"></strong>
                 <button id="resultListenButton" class="audio-icon-button hidden-field" type="button" aria-label="영어 문장 듣기" title="영어 문장 듣기">듣기</button>
               </div>
-              <p id="resultKoreanText" class="result-korean"></p>
+              <div class="result-korean-row">
+                <p id="resultKoreanText" class="result-korean"></p>
+                <button id="resultSpeakingButton" class="pill-button result-speaking-chip hidden-field" type="button">말해봄</button>
+              </div>
             </div>
             <p id="quizHintLine" class="quiz-hint-line hidden-field"></p>
-            <div id="resultMetaGrid" class="result-grid">
-              <div>
-                <span>기본 틀</span>
-                <strong id="resultPatternText"></strong>
+            <details id="resultMetaDetails" class="result-meta-details">
+              <summary><span class="summary-closed">학습 정보 보기 ▾</span><span class="summary-open">학습 정보 숨기기 ▴</span></summary>
+              <div id="resultMetaGrid" class="result-grid">
+                <div>
+                  <span>기본 틀</span>
+                  <strong id="resultPatternText"></strong>
+                </div>
+                <div>
+                  <span>응용 예문</span>
+                  <strong id="resultExampleText"></strong>
+                </div>
+                <div class="wide-result">
+                  <span>메모</span>
+                  <strong id="resultNoteText"></strong>
+                </div>
               </div>
-              <div>
-                <span>응용 예문</span>
-                <strong id="resultExampleText"></strong>
-              </div>
-              <div class="wide-result">
-                <span>메모</span>
-                <strong id="resultNoteText"></strong>
-              </div>
-            </div>
+            </details>
             <div id="quizCompleteSummary" class="complete-summary hidden-field"></div>
             <div id="quizCompletePreview" class="complete-preview hidden-field"></div>
-            <button id="resultSpeakingButton" class="primary-button result-speaking-button hidden-field" type="button">말해봄</button>
           </article>
 
           <div class="quiz-footer">

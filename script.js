@@ -118,6 +118,7 @@ const refs = {
   resultEnglishText: document.getElementById("resultEnglishText"),
   resultListenButton: document.getElementById("resultListenButton"),
   resultKoreanText: document.getElementById("resultKoreanText"),
+  resultMetaDetails: document.getElementById("resultMetaDetails"),
   resultMetaGrid: document.getElementById("resultMetaGrid"),
   resultPatternText: document.getElementById("resultPatternText"),
   resultExampleText: document.getElementById("resultExampleText"),
@@ -848,6 +849,8 @@ function renderQuizResult(sentence) {
   refs.quizHintLine.textContent = isCorrect ? "" : `힌트: ${hintSource}`;
   refs.quizHintLine.classList.toggle("hidden-field", isCorrect);
   refs.resultHero.classList.remove("hidden-field");
+  refs.resultMetaDetails.classList.remove("hidden-field");
+  refs.resultMetaDetails.open = false;
   refs.resultMetaGrid.classList.remove("hidden-field");
   refs.quizCompleteSummary.classList.add("hidden-field");
   refs.quizCompletePreview.classList.add("hidden-field");
@@ -886,6 +889,7 @@ function renderQuizCompleteState() {
   refs.quizRepeatPromptText.textContent = hasWrong ? "한 세트 끝났어요." : "한 세트 잘 마쳤어요.";
   refs.resultHero.classList.add("hidden-field");
   refs.resultListenButton.classList.add("hidden-field");
+  refs.resultMetaDetails.classList.add("hidden-field");
   refs.resultMetaGrid.classList.add("hidden-field");
   refs.quizCompleteSummary.innerHTML = `
     <div class="complete-summary-card">
@@ -950,7 +954,7 @@ function renderQuiz() {
   if (!question || !sentence) { return; }
   const isAnswered = Boolean(uiState.answerState && uiState.answerState.questionId === sentence.id);
   refs.quizFavoriteButton.classList.toggle("hidden-field", isAnswered);
-  refs.quizSpeakingButton.classList.toggle("hidden-field", !isAnswered);
+  refs.quizSpeakingButton.classList.add("hidden-field");
   refs.quizFavoriteButton.dataset.id = sentence.id;
   refs.quizSpeakingButton.dataset.id = sentence.id;
   refs.quizFavoriteButton.textContent = sentence.favorite ? "★" : "☆";
@@ -980,6 +984,7 @@ function renderQuiz() {
   refs.quizHintLine.classList.add("hidden-field");
   refs.resultSpeakingButton.classList.add("hidden-field");
   refs.resultListenButton.classList.add("hidden-field");
+  refs.resultMetaDetails.classList.add("hidden-field");
   if (!uiState.answerControlsVisible) { renderQuizThinkingState(); }
   else if (uiState.quizMode === "fill_blank") { renderBlankQuestion(question, sentence, false); }
   else { renderChoiceQuestion(question, sentence, false); }

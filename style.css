@@ -726,6 +726,7 @@ select:focus {
   margin-top: 0;
   display: flex;
   gap: 8px;
+  align-items: center;
   flex-wrap: nowrap;
   overflow-x: auto;
   padding-bottom: 2px;
@@ -741,7 +742,7 @@ select:focus {
   background: rgba(255, 252, 247, 0.92);
   border: 1px solid rgba(112, 91, 64, 0.08);
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -819,7 +820,7 @@ select:focus {
 
 .quiz-top {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 12px;
 }
 
@@ -827,14 +828,14 @@ select:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .quiz-progress-line {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: 16px;
   border: 1px solid rgba(112, 91, 64, 0.08);
   background: rgba(255, 251, 245, 0.82);
@@ -857,23 +858,25 @@ select:focus {
 }
 
 .compact-auto-next {
-  padding: 8px 10px;
+  padding: 7px 10px;
   border-radius: 16px;
+  flex: 0 0 auto;
 }
 
 .compact-auto-next span {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .compact-sound-field {
-  padding: 8px 10px;
+  padding: 7px 10px;
   border-radius: 16px;
   background: rgba(255, 249, 240, 0.9);
   border: 1px solid rgba(71, 108, 86, 0.12);
+  flex: 0 0 auto;
 }
 
 .compact-sound-field span {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .quiz-card-top {
@@ -973,7 +976,7 @@ select:focus {
 
 .result-card {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .result-card.is-complete {
@@ -984,7 +987,7 @@ select:focus {
   position: relative;
   display: grid;
   gap: 8px;
-  padding: 18px;
+  padding: 16px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(112, 91, 64, 0.08);
@@ -1010,6 +1013,31 @@ select:focus {
   font-weight: 700;
 }
 
+.result-korean-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.result-korean-row .result-korean {
+  flex: 1;
+}
+
+.result-speaking-chip {
+  width: auto;
+  min-width: 86px;
+  padding: 7px 11px;
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+
+.result-speaking-chip.is-complete {
+  background: rgba(226, 239, 229, 0.9);
+  color: var(--accent-strong);
+  border-color: rgba(71, 108, 86, 0.18);
+}
+
 .repeat-prompt.complete-callout {
   padding: 16px 18px;
   border-radius: 20px;
@@ -1020,16 +1048,6 @@ select:focus {
   font-weight: 800;
   line-height: 1.55;
   white-space: pre-line;
-}
-
-.result-speaking-button {
-  width: 100%;
-}
-
-.result-speaking-button.is-complete {
-  background: rgba(226, 239, 229, 0.9);
-  color: var(--accent-strong);
-  border-color: rgba(71, 108, 86, 0.18);
 }
 
 .auto-next-field {
@@ -1047,6 +1065,38 @@ select:focus {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.result-meta-details {
+  border-top: 1px dashed rgba(112, 91, 64, 0.14);
+  padding-top: 10px;
+}
+
+.result-meta-details summary {
+  cursor: pointer;
+  list-style: none;
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
+.result-meta-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.result-meta-details .summary-open {
+  display: none;
+}
+
+.result-meta-details[open] .summary-closed {
+  display: none;
+}
+
+.result-meta-details[open] .summary-open {
+  display: inline;
+}
+
+.result-meta-details .result-grid {
+  margin-top: 10px;
 }
 
 .complete-summary-grid,
@@ -1173,7 +1223,6 @@ select:focus {
 
   .hero-actions,
   .quiz-summary,
-  .quiz-toggle-row,
   .quiz-answer-form {
     width: 100%;
   }
@@ -1198,19 +1247,50 @@ select:focus {
     width: 38px;
   }
 
-  .quiz-card-top .quiz-toggle-row,
   .quiz-utility-row,
   .mode-chip-row {
     width: 100%;
   }
 
+  .quiz-utility-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
   .quiz-progress-line {
-    width: auto;
+    width: 100%;
+    justify-content: center;
+    min-width: 0;
   }
 
   .quiz-footer .primary-button,
   .quiz-footer .secondary-button {
     width: 100%;
+  }
+
+  .mode-chip-row {
+    gap: 6px;
+  }
+
+  .mode-chip,
+  .compact-auto-next,
+  .compact-sound-field {
+    flex: 0 0 auto;
+  }
+
+  .result-hero {
+    padding: 14px;
+  }
+
+  .result-korean-row {
+    align-items: flex-start;
+  }
+
+  .result-speaking-chip {
+    min-width: 78px;
+    padding: 6px 10px;
+    font-size: 0.82rem;
   }
 
   .sentence-action-row {
